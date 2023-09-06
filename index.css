@@ -1,0 +1,24 @@
+body{
+    color: white;
+    margin: 0;
+    background-color: black;
+    text-align: center;
+    font-size: 72px;
+}
+button{
+    font-size: 36px;
+}
+#contents{
+    font-size: 36px;
+}
+#ABC101
+{
+    background-color: darkblue;
+    position: absolute;
+    display:flex;
+    flex-direction: column;
+}
+.HoldElement{
+    background-color: blue;
+    height: 40px;
+}
