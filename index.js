@@ -1,3 +1,5 @@
+import {InitUpdate, AppendHolder} from "./WindowBananager";
+
 let textArea = document.getElementById("contents");
 let ABC101 = document.getElementById("ABC101");
 let ABC102 = document.getElementById("ABC102");
