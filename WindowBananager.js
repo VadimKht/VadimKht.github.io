@@ -8,8 +8,8 @@ let distancee = {};
 function InitUpdate()
 {
     document.onmousemove = (event) => {
-        posXMouse = event.x;
-        posYMouse = event.y;
+        posXMouse = event.pageX;
+        posYMouse = event.pageY;
     };
 
     window.setInterval(() => {
@@ -21,11 +21,11 @@ function InitUpdate()
                 elementArray[chosenElement][0].style.left = posXMouse + distancee.x + "px";
             }   
             
-            if(elementArray[chosenElement][0].getBoundingClientRect().y + elementArray[chosenElement][0].clientHeight <= 7)
+            if(elementArray[chosenElement][0].getBoundingClientRect().y + elementArray[chosenElement][0].offsetHeight <= 7)
             {
                 elementArray[chosenElement][0].style.top = 8 - elementArray[chosenElement][0].clientHeight + "px";
             }
-            if(elementArray[chosenElement][0].getBoundingClientRect().x + elementArray[chosenElement][0].clientWidth <= 7)
+            if(elementArray[chosenElement][0].getBoundingClientRect().x + elementArray[chosenElement][0].Width <= 7)
             {
                 elementArray[chosenElement][0].style.left = 8 - elementArray[chosenElement][0].clientWidth + "px";
             }
@@ -56,7 +56,7 @@ function AppendHolder(elementToAppendTo)
             if(event.target == element[1]){
                 element[0].style.zIndex = 1;
                 chosenElement = i;
-                distancee = {x: elementArray[chosenElement][1].getBoundingClientRect().x - posXMouse, y: elementArray[chosenElement][1].getBoundingClientRect().y - posYMouse};
+                distancee = {x: elementArray[chosenElement][1].getBoundingClientRect().x - posXMouse + window.scrollX, y: elementArray[chosenElement][1].getBoundingClientRect().y - posYMouse + window.scrollY};
                 return;
             }
             i++;
