@@ -3,7 +3,7 @@
 let elementArray = [];
 let chosenElement = null;
 
-// x and y distance between mouse and window dragger for the proper mouse offset; changed at the moment you grab object first time
+// x and y distance between mouse and window dragger for the proper mouse offset; changed at the moment you grab object
 let distancee = {};
 function InitUpdate()
 {
