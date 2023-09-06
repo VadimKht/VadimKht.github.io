@@ -25,7 +25,10 @@ document.addEventListener("mouseup", ()=>{
     chosenElement = null;
 })
 
-ABC101.style.top = 100 + "px";
+ABC101.style.left = 400 + "px";
+ABC101.style.top = 400 + "px";
+ABC102.style.left = 1000 + "px";
+ABC102.style.top = 400 + "px";
 
 AppendHolder(ABC101);
 AppendHolder(ABC102);
