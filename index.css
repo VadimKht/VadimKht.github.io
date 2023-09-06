@@ -4,6 +4,7 @@ body{
     background-color: black;
     text-align: center;
     font-size: 72px;
+    padding: 10px;
 }
 button{
     font-size: 36px;

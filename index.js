@@ -1,8 +1,6 @@
 let textArea = document.getElementById("contents");
 let ABC101 = document.getElementById("ABC101");
 let ABC102 = document.getElementById("ABC102");
-let messageslist = ["hello", "hi", "stop clicking", "stop", "no really stop"];
-let indexarr = 0;
 
 // mouse button down state
 let isHolding = false;
@@ -15,9 +13,11 @@ InitUpdate();
 
 function onclicked()
 {
-    if(indexarr  >= messageslist.length-1) indexarr = 0;
-    textArea.textContent = messageslist[indexarr];
-    indexarr++;
+    elementArray.forEach((element)=>{
+        element[0].style.top = element[2].yPos + "px";
+        element[0].style.left = element[2].xPos + "px";
+        element[0].style.zIndex = 0;
+    })
 }
 
 document.addEventListener("mouseup", ()=>{
@@ -25,7 +25,7 @@ document.addEventListener("mouseup", ()=>{
     chosenElement = null;
 })
 
-
+ABC101.style.top = 100 + "px";
 
 AppendHolder(ABC101);
 AppendHolder(ABC102);
