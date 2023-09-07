@@ -4,7 +4,7 @@ let ABC101 = document.getElementById("ABC101");
 let ABC102 = document.getElementById("ABC102");
 
 
-// window bananager.js function
+// window manager.js function
 InitUpdate();
 
 function onclicked()
@@ -19,23 +19,25 @@ function onclicked()
 function newWindow()
 {
     let size = 36;
+    let contents = "hello";
     let inputText = document.getElementById("inputText");
 
     // REALLY bad way to parse text REALLY REALLY bad way REMOVE LATER!!!!!
+    // edit: actually, i kinda like this method. it divides input by words. maybe make a new parse.js for using it as a tool
     let parse = inputText.value.split(' ');
-    if(parse[0] + " " + parse[1] + " " + parse[2] + " " + parse[3] == "I want my element");
+    if(parse[0] + " " == "size ");
     {
-        if(parse[4] + " " + parse [5] + " " == "to be ")
+        if(!isNaN(Number(parse[1])))
         {
-            if(!isNaN(Number(parse[6])))
-            {
-                size = Number(parse[6]);
+            size = Number(parse[1]);
+            if(parse[2] = " text "){
+                contents = inputText.value.slice(15);
             }
         }
 
     }
     let newElement = document.createElement("div");
-    newElement.innerText = "hello";
+    newElement.innerText = contents;
     newElement.style.backgroundColor = "darkblue"
     newElement.style.width = size + "px";
     newElement.style.height = size + "px";

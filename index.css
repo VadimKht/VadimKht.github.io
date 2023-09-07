@@ -1,3 +1,11 @@
+header{
+    font-size: 32px;
+    text-align: left;
+}
+#headerInfo
+{
+    background-color: darkblue;
+}
 div{
     border-radius: 16px;
 }
@@ -9,6 +17,7 @@ body{
     font-size: 72px;
     padding: 10px;
     white-space: wrap;
+    
 }
 button{
     font-size: 36px;
@@ -24,16 +33,14 @@ button{
     flex-direction: column;
 }
 
-.HoldElement{
-    background-color: blue;
-    height: 40px;
-}
- 
+
+
 p{
     margin:0;
 }
-input{
+textarea{
     font-size: 36px;
     height: 40px;
     margin-bottom: 32px;
 }
+
