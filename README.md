@@ -31,5 +31,6 @@ I thought of using react.js, but knowing that it'd be better to compile jsx and 
 10) Use vue.js or something (?)
 11) Not sure if it's possible, but if I had money and could afford to buy a server, it'd be a nice idea to add annonymous chat that fetches everything it needs from the server that i'd buy (?; however security requirements would make it very hard)
 
-12) get motivation to work on it (insanely difficult)
-13) get $$$ for any of my effort (impossible)
+?) get motivation to work on it (insanely difficult)
+
+?) get $$$ for any of my effort (impossible)
