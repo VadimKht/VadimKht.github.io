@@ -1,3 +1,6 @@
+div{
+    border-radius: 16px;
+}
 body{
     color: white;
     margin: 0;
@@ -5,9 +8,12 @@ body{
     text-align: center;
     font-size: 72px;
     padding: 10px;
+    overflow: hidden;
+    white-space: wrap;
 }
 button{
     font-size: 36px;
+    margin-bottom: 14px;
 }
 #contents{
     font-size: 36px;
@@ -22,4 +28,13 @@ button{
 .HoldElement{
     background-color: blue;
     height: 40px;
+}
+ 
+p{
+    margin:0;
+}
+input{
+    font-size: 36px;
+    height: 40px;
+    margin-bottom: 32px;
 }
