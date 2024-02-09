@@ -3,7 +3,6 @@ let textArea = document.getElementById("contents");
 let ABC101 = document.getElementById("ABC101");
 let ABC102 = document.getElementById("ABC102");
 
-
 // window manager.js function
 InitUpdate();
 
@@ -20,28 +19,30 @@ function newWindow()
 {
     let size = 36;
     let contents = "hello";
+    let isResizeable = true;
     let inputText = document.getElementById("inputText");
 
-    // REALLY bad way to parse text REALLY REALLY bad way REMOVE LATER!!!!!
-    // edit: actually, i kinda like this method. it divides input by words. maybe make a new parse.js for using it as a tool
+    // parse parameters for making new windows
     let parse = inputText.value.split(' ');
-    if(parse[0] + " " == "size ");
+    console.log(parse);
+    if(parse[0] == "size");
     {
         if(!isNaN(Number(parse[1])))
         {
             size = Number(parse[1]);
-            if(parse[2] = " text "){
-                contents = inputText.value.slice(15);
+            if(parse[2] == "text"){
+                contents = parse[3];
             }
         }
-
     }
+    if(parse.find((element) => element == "noresize")) isResizeable = false;
+
     let newElement = document.createElement("div");
     newElement.innerText = contents;
     newElement.style.backgroundColor = "darkblue"
     newElement.style.width = size + "px";
     newElement.style.height = size + "px";
-    AppendHolder(newElement, true);
+    AppendHolder(newElement, true, isRezieable = isResizeable);
     root.appendChild(newElement);
 }
 

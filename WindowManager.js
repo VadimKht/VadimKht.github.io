@@ -1,5 +1,8 @@
-// holds all elements for interaction!!
-// [0] the full window [1] the window grabber [2] initial position vector2 object [3] resizing thing
+// holds all elements for interaction such as window grab and resize!!
+// accessed with elementArray[element][read_below]
+// [0] the full window [1] the window grabber [2] initial position vector2 object [3] resizing element
+// edit: me from future here. wow, this looks garbage. thank you me from the 1 line above, without you i'd take a long time to figure out
+// it made me realize why typescript is a thing
 let elementArray = [];
 let chosenElement = null;
 
@@ -12,18 +15,69 @@ let isHoldingResize = false;
 let posXMouse = 0;
 let posYMouse = 0;
 
-document.addEventListener("mouseup", ()=>{
+function ResetMouse(){
     isHolding = false;
     isHoldingResize = false;
     chosenElement = null;
-})
+}
+document.addEventListener("mouseup", ResetMouse)
+document.addEventListener("touchend", ResetMouse)
 
+function HolderSetEvent(event){
+    event.preventDefault();
+    isHolding = true;
+    let i = 0;
+    elementArray.forEach((element)=>
+    {
+        element[0].style.zIndex = 0;
+        if(event.target == element[1]){
+            element[0].style.zIndex = 1;
+            chosenElement = i;
+            distancee = {x: elementArray[chosenElement][1].getBoundingClientRect().x - posXMouse + window.scrollX, y: elementArray[chosenElement][1].getBoundingClientRect().y - posYMouse + window.scrollY};
+            return;
+        }
+        i++;
+    }) 
+}
+
+function ResizeSetEvent(event){
+    isHoldingResize = true;
+    // used for adding element to elementArray array, i is used as index. might be a bad idea
+    let i = 0;
+    elementArray.forEach((element)=>
+    {
+        /* makes the chosen element above every other element; 
+            also finds what element is chosen and sets its index in elementArray as chosen element; 
+            besides that adds initial distance between mouse and the resizable object for purposes of locating it exactly at where you clicked. almost. it doesn't work as intended as it picks opposite from where clicked inside the ball????*/
+        element[0].style.zIndex = 0;
+        if(event.target == element[3]){
+            element[0].style.zIndex = 1;
+            chosenElement = i;
+            
+            // allows mouse to stay in place without instnatly moving. this line of code works by the power of miracle.  
+            distancee = {x: posXMouse - elementArray[chosenElement][3].getBoundingClientRect().x - elementArray[chosenElement][3].getBoundingClientRect().width - window.scrollX, 
+                y: posYMouse - elementArray[chosenElement][3].getBoundingClientRect().y - elementArray[chosenElement][3].getBoundingClientRect().height + window.scrollY};
+            return;
+        }       
+        i++;
+    }) 
+}
+
+let FPS = 60;
 function InitUpdate()
 {
     document.onmousemove = (event) => {
         posXMouse = event.pageX;
         posYMouse = event.pageY;
     };
+    document.ontouchmove = (event) =>
+    {
+        const touches = event.changedTouches;
+        for (let i = 0; i < touches.length; i++) {
+            posXMouse = touches[i].pageX;
+            posYMouse = touches[i].pageY;
+          }
+    }
 
     window.setInterval(() => {
         if(chosenElement !== null)
@@ -36,11 +90,11 @@ function InitUpdate()
 
             if(isHoldingResize)
             {
-                elementArray[chosenElement][0].style.height = (posYMouse - distancee.y) - elementArray[chosenElement][0].getBoundingClientRect().y - scrollY + "px";
+                elementArray[chosenElement][0].style.height = (posYMouse - distancee.y) - elementArray[chosenElement][0].getBoundingClientRect().y + scrollY + "px";
                 elementArray[chosenElement][0].style.width = (posXMouse - distancee.x) - elementArray[chosenElement][0].getBoundingClientRect().x - scrollX + "px";
             }
             
-            if(elementArray[chosenElement][0].getBoundingClientRect().y <= 0)
+            if(elementArray[chosenElement][0].getBoundingClientRect().y + elementArray[chosenElement][0].offsetHeight <= 0)
             {
                 elementArray[chosenElement][0].style.top = 0  + "px";
             }
@@ -50,11 +104,16 @@ function InitUpdate()
             }
         }
         
-    }, 1000 / 60);
+    }, 1000 / FPS);
 }
 
 function AppendHolder(elementToAppendTo, isCloseable, isResizeable = true, width=600)
 {
+    if(elementToAppendTo.className == "vWindow"){
+        alert("already window");
+        return;
+    }
+    
     // apply necessary styling to our element
     elementToAppendTo.style.position = "absolute";
     elementToAppendTo.style.userSelect = "none";
@@ -78,10 +137,12 @@ function AppendHolder(elementToAppendTo, isCloseable, isResizeable = true, width
         closeButton.style.height = 24 + "px";
         closeButton.style.backgroundColor = "black";
         closeButton.style.position = "absolute";
-        // atleast resize div perfectly fits within this hole if you sqush it enough.
+
+        // my attempt to make the resize fit inside close button if you resize it to 0 height
         closeButton.style.right = "-2px";
         closeButton.style.top = "8px";
         closeButton.addEventListener("mousedown", (event) => closeButton.parentNode.parentNode.remove());
+        closeButton.addEventListener("touchend", (event) => closeButton.parentNode.parentNode.remove());
         holdElement.append(closeButton);
     }
 
@@ -97,48 +158,17 @@ function AppendHolder(elementToAppendTo, isCloseable, isResizeable = true, width
         resizeElement.style.position = "absolute";
         resizeElement.style.bottom = "0px";
         resizeElement.style.right = "0px";
-        resizeElement.addEventListener("mousedown", (event) =>
-        {
-            isHoldingResize = true;
-            // used for adding element to elementArray array, i is used as index. might be a bad idea
-            let i = 0;
-            elementArray.forEach((element)=>
-            {
-                /* makes the chosen element above every other element; 
-                   also finds what element is chosen and sets its index in elementArray as chosen element; 
-                   besides that adds initial distance between mouse and the resizable object for purposes of locating it exactly at where you clicked. almost. it doesn't work as intended as it picks opposite from where clicked inside the ball????*/
-                element[0].style.zIndex = 0;
-                if(event.target == element[3]){
-                    element[0].style.zIndex = 1;
-                    chosenElement = i;
-                    distancee = {x: elementArray[chosenElement][3].getBoundingClientRect().x - posXMouse + window.scrollX, y: elementArray[chosenElement][3].getBoundingClientRect().y - posYMouse + window.scrollY};
-                    return;
-                }       
-                i++;
-            }) 
-        })
+        resizeElement.addEventListener("mousedown", ResizeSetEvent);
+        resizeElement.addEventListener("touchend", ResizeSetEvent);
 
         elementToAppendTo.append(resizeElement);
     }
 
     elementArray.push([elementToAppendTo, holdElement, initialPosition, resizeElement]);
 
-    //same as resizing element but for dragging it
-    holdElement.addEventListener("mousedown", (event) =>
-    {
-        isHolding = true;
-        let i = 0;
-        elementArray.forEach((element)=>
-        {
-            element[0].style.zIndex = 0;
-            if(event.target == element[1]){
-                element[0].style.zIndex = 1;
-                chosenElement = i;
-                distancee = {x: elementArray[chosenElement][1].getBoundingClientRect().x - posXMouse + window.scrollX, y: elementArray[chosenElement][1].getBoundingClientRect().y - posYMouse + window.scrollY};
-                return;
-            }
-            i++;
-        }) 
-    });
+    //same as resizing element but for dragging it (for hold element)
+    holdElement.addEventListener("mousedown", HolderSetEvent);
+    holdElement.addEventListener("touchstart", HolderSetEvent);
+
     elementToAppendTo.insertBefore(holdElement, elementToAppendTo.firstChild);
 }
