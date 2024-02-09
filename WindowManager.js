@@ -41,6 +41,7 @@ function HolderSetEvent(event){
 }
 
 function ResizeSetEvent(event){
+    event.preventDefault();
     isHoldingResize = true;
     // used for adding element to elementArray array, i is used as index. might be a bad idea
     let i = 0;
@@ -63,7 +64,7 @@ function ResizeSetEvent(event){
     }) 
 }
 
-let FPS = 60;
+const FPS = 60;
 function InitUpdate()
 {
     document.onmousemove = (event) => {
@@ -159,7 +160,7 @@ function AppendHolder(elementToAppendTo, isCloseable, isResizeable = true, width
         resizeElement.style.bottom = "0px";
         resizeElement.style.right = "0px";
         resizeElement.addEventListener("mousedown", ResizeSetEvent);
-        resizeElement.addEventListener("touchend", ResizeSetEvent);
+        resizeElement.addEventListener("touchstart", ResizeSetEvent);
 
         elementToAppendTo.append(resizeElement);
     }
@@ -172,3 +173,4 @@ function AppendHolder(elementToAppendTo, isCloseable, isResizeable = true, width
 
     elementToAppendTo.insertBefore(holdElement, elementToAppendTo.firstChild);
 }
+InitUpdate();
