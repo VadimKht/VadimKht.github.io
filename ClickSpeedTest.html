@@ -1,6 +1,7 @@
 <html>
   <head><link rel="stylesheet" href="./WindowManager.css"></head>
   <body>
+    <div id="emptydiv"></div>
     <button id="addBtn" onclick="start()">Click!</button>
     <button class="helperButton" id="pause" onclick="PauseBtn()">PAUSE TEMPORARILY</button>
     <button class="helperButton" id="dividehelper" onclick="DivideBtn()">Divide required cpm by 1.1</button>
@@ -9,7 +10,7 @@
     <p>real clicks: <span id="realclicks">0</span> <br> fake clicks: <span id="fakeclicks">0</span></p>
     <p>timer: <span id="timer">0</span> s <br> <span id="timer_m">0</span> m <br> paused time total: <span id="pausedTime">0</span> s</p>
     <p>your speed: <span id="speed"></span>  CPS <br> <span id="spm"></span> CPM</p>
-    <p>REQUIRED CPM TO SURVIVE: <span id="recpm">0</span> <br> REQUIRED CPM DIVIDER: <span id="cpmdivider">0</span></p>
+    <p>REQUIRED CPM TO SURVIVE: <span id="recpm">0</span> <br> REQUIRED CPM DIVIDER: <span id="cpmdivider">1.0</span></p>
   </body>
   <style>
     
@@ -56,6 +57,7 @@
     const cpmdivel = document.getElementById("cpmdivider");
 
     let timeStarted;
+    let realTimeStarted;
     let time = new Date().getTime();
     let clicks = 0;
     let fakeClicks = 0;
@@ -71,10 +73,33 @@
     let pausedTime = 0;
     let helperDivider = 1;
 
-    let HelperPopUpNextAppearanceTime = 30;
+    // the set value is for first appearance
+    let HelperPopUpNextAppearanceTime = 20;
 
     let GameOver = false;
     
+    let gnome = new Audio('https://www.myinstants.com/media/sounds/im-a-gnome-meme-sound-effect-woo.mp3');
+    function Jumpscare(){
+      clearInterval(intervalPointer);
+      const elem = document.createElement("img");
+      elem.setAttribute("src", "https://m.media-amazon.com/images/I/81Rm3bk57BL._AC_UF894,1000_QL80_.jpg");
+      elem.setAttribute("alt", "https://www.amazon.com/Happy-Shovel-Primaries-Garden-Figurine/dp/B07CVMMVPZ");
+      elem.setAttribute("height", "100%");
+      elem.setAttribute("width", "100%");
+      elem.style.display = "block";
+      const emptydiv = document.getElementById("emptydiv");
+      emptydiv.appendChild(elem);
+      const no_cheating_el = document.createElement("pre");
+      no_cheating_el.innerHTML = "The magic gnome has spotted you are possibly using cheats! you are tapping at speed above 18 CPS!\n please do not cheat!\n you start bleeding from the wrath of the gnome. RIP."
+      emptydiv.appendChild(document.createElement("p"))
+      emptydiv.appendChild(no_cheating_el);
+      gnome.play();
+      GameOver = true;
+      setTimeout(() => {
+        Death();
+      }, 3000);
+    }
+
     function Death(){
       GameOver = true;
       alert("you died with score of " + cpm + " cpm and " + cps + " cps");
@@ -105,7 +130,9 @@
         m_timeSinceBeginning = parseFloat(s_timeSinceBeginning/60).toFixed(3);
       }
       
-      
+      cps_r = clicks / ((time - realTimeStarted)/1000);
+      if(cps_r >= 19) Jumpscare();
+
       cps = parseFloat((clicks + fakeClicks) / s_timeSinceBeginning).toFixed(2);
       cpm = parseFloat((clicks + fakeClicks) / s_timeSinceBeginning*60).toFixed(2);
       spel.innerHTML = cps;
@@ -114,7 +141,7 @@
       timel.innerHTML = s_timeSinceBeginning;
       mtel.innerHTML = m_timeSinceBeginning
 
-      requiredCpmToSurvive = parseFloat((Math.sqrt(s_timeSinceBeginning)*28)/helperDivider).toFixed(2);
+      requiredCpmToSurvive = parseFloat((Math.sqrt(s_timeSinceBeginning)*50)/helperDivider).toFixed(2);
       recspmel.innerHTML = requiredCpmToSurvive;
 
       if(+cpm <= +requiredCpmToSurvive){
@@ -144,13 +171,14 @@
       }, seconds*1000);
     }
     function PauseBtn(){
-      Pause(GenRandomNumber(2,10));
+      const coefByTime = 1/(s_timeSinceBeginning/10)
+      Pause(GenRandomNumber(10*coefByTime+10, 100*coefByTime+10));
       document.getElementById("pause").style.display = "none";
     }
 
     function DivideRequired(){
       helperDivider += 0.1;
-      cpmdivel.innerHTML = helperDivider;
+      cpmdivel.innerHTML = parseFloat(helperDivider).toFixed(1);
     }
 
     function DivideBtn(){
@@ -159,13 +187,14 @@
     }
 
     function AddRBtn(){
-      fakeClicks += GenRandomInt(1,100);
+      fakeClicks += GenRandomInt(10,500);
       fkclel.innerHTML = fakeClicks;
       document.getElementById("Addhelper").style.display = "none";
     }
 
     function start(){
       timeStarted = new Date().getTime();
+      realTimeStarted = new Date().getTime();
       StartTimer();
       add();
       btel.onclick = add;

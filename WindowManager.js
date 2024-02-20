@@ -27,6 +27,10 @@ function HolderSetEvent(event){
     event.preventDefault();
     isHolding = true;
     let i = 0;
+    if(event.type == "touchstart"){
+        posXMouse = event.touches[0].pageX;
+        posYMouse = event.touches[0].pageY;
+    }
     elementArray.forEach((element)=>
     {
         element[0].style.zIndex = 0;
@@ -43,6 +47,12 @@ function HolderSetEvent(event){
 function ResizeSetEvent(event){
     event.preventDefault();
     isHoldingResize = true;
+    
+    if(event.type == "touchstart"){
+        posXMouse = event.touches[0].pageX;
+        posYMouse = event.touches[0].pageY;
+    }
+
     // used for adding element to elementArray array, i is used as index. might be a bad idea
     let i = 0;
     elementArray.forEach((element)=>
@@ -74,10 +84,8 @@ function InitUpdate()
     document.ontouchmove = (event) =>
     {
         const touches = event.changedTouches;
-        for (let i = 0; i < touches.length; i++) {
-            posXMouse = touches[i].pageX;
-            posYMouse = touches[i].pageY;
-          }
+        posXMouse = touches[0].pageX;
+        posYMouse = touches[0].pageY;
     }
 
     window.setInterval(() => {
