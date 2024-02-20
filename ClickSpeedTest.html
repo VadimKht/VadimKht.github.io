@@ -7,34 +7,34 @@
     <button class="helperButton" id="Addhelper" onclick="AddRBtn()">Add random amount of clicks</button>
     <p id="numerator">not started yet!</p>
     <p>real clicks: <span id="realclicks">0</span> <br> fake clicks: <span id="fakeclicks">0</span></p>
-    <p>timer: <span id="timer">0</span> s <br> <span id="timer_m">0</span> m <br> paused time total: <span id="pausedTime">0</span></p>
+    <p>timer: <span id="timer">0</span> s <br> <span id="timer_m">0</span> m <br> paused time total: <span id="pausedTime">0</span> s</p>
     <p>your speed: <span id="speed"></span>  CPS <br> <span id="spm"></span> CPM</p>
-    <p>REQUIRED CPM TO SURVIVE: <span id="recpm">0</span></p>
+    <p>REQUIRED CPM TO SURVIVE: <span id="recpm">0</span> <br> REQUIRED CPM DIVIDER: <span id="cpmdivider">0</span></p>
   </body>
   <style>
     
     button{
       width:20em;
-      height:20em;
+      height:10em;
     }
     body{
       font-size: 2em;
     }
 
     .helperButton{
-      display:none;
+      display: none;
     }
     #pause{
       position: absolute;
       left:300px;
-      height: 10em;
+      height: 5em;
     }
 
     #dividehelper{
       position:absolute;
       left:300px;
-      top:140px;
-      height: 10em;
+      top:74px;
+      height: 5em;
     }
     #Addhelper{
       position:absolute;
@@ -53,6 +53,7 @@
     const rlclel = document.getElementById("realclicks");
     const fkclel = document.getElementById("fakeclicks");
     const pstmel = document.getElementById("pausedTime");
+    const cpmdivel = document.getElementById("cpmdivider");
 
     let timeStarted;
     let time = new Date().getTime();
@@ -71,14 +72,18 @@
     let helperDivider = 1;
 
     let HelperPopUpNextAppearanceTime = 30;
+
+    let GameOver = false;
     
     function Death(){
+      GameOver = true;
       alert("you died with score of " + cpm + " cpm and " + cps + " cps");
     }
 
     function UpdateTime(){
       if(s_timeSinceBeginning >= 600){
         alert("you've spent 10 minutes without losing! congratulations on beating the game.")
+        GameOver = true;
         clearInterval(intervalPointer);
         return;
       }
@@ -88,7 +93,7 @@
         
         const whichhelper = GenRandomInt(1,3);
         if(whichhelper == 1) document.getElementById("pause").style.display = "inline";
-        if(whichhelper == 2) document.getElementById("dividhelper").style.display = "inline";
+        if(whichhelper == 2) document.getElementById("dividehelper").style.display = "inline";
         if(whichhelper == 3) document.getElementById("Addhelper").style.display = "inline";
       }
 
@@ -109,7 +114,7 @@
       timel.innerHTML = s_timeSinceBeginning;
       mtel.innerHTML = m_timeSinceBeginning
 
-      requiredCpmToSurvive = parseFloat((Math.sqrt(s_timeSinceBeginning)*20)/helperDivider).toFixed(2);
+      requiredCpmToSurvive = parseFloat((Math.sqrt(s_timeSinceBeginning)*28)/helperDivider).toFixed(2);
       recspmel.innerHTML = requiredCpmToSurvive;
 
       if(+cpm <= +requiredCpmToSurvive){
@@ -145,6 +150,7 @@
 
     function DivideRequired(){
       helperDivider += 0.1;
+      cpmdivel.innerHTML = helperDivider;
     }
 
     function DivideBtn(){
@@ -165,6 +171,7 @@
       btel.onclick = add;
     }
     function add(){
+      if(GameOver) return;
       clicks += 1;
       rlclel.innerHTML = clicks;
       numel.innerHTML = clicks + fakeClicks;
