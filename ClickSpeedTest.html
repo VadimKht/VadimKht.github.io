@@ -225,11 +225,10 @@
         if(whichhelper == 2) document.getElementById("dividehelper").style.display = "inline";
         if(whichhelper == 3) document.getElementById("Addhelper").style.display = "inline";
       }
+      time = new Date().getTime();
 
       if(!HelperPause)
       {
-        time = new Date().getTime();
-
         s_timeSinceBeginning = parseFloat((time-timeStarted)/1000).toFixed(3)
         m_timeSinceBeginning = parseFloat(s_timeSinceBeginning/60).toFixed(3);
       }
