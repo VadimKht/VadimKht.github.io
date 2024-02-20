@@ -1,0 +1,178 @@
+<html>
+  <head><link rel="stylesheet" href="./WindowManager.css"></head>
+  <body>
+    <button id="addBtn" onclick="start()">Click!</button>
+    <button class="helperButton" id="pause" onclick="PauseBtn()">PAUSE TEMPORARILY</button>
+    <button class="helperButton" id="dividehelper" onclick="DivideBtn()">Divide required cpm by 1.1</button>
+    <button class="helperButton" id="Addhelper" onclick="AddRBtn()">Add random amount of clicks</button>
+    <p id="numerator">not started yet!</p>
+    <p>real clicks: <span id="realclicks">0</span> <br> fake clicks: <span id="fakeclicks">0</span></p>
+    <p>timer: <span id="timer">0</span> s <br> <span id="timer_m">0</span> m <br> paused time total: <span id="pausedTime">0</span></p>
+    <p>your speed: <span id="speed"></span>  CPS <br> <span id="spm"></span> CPM</p>
+    <p>REQUIRED CPM TO SURVIVE: <span id="recpm">0</span></p>
+  </body>
+  <style>
+    
+    button{
+      width:20em;
+      height:20em;
+    }
+    body{
+      font-size: 2em;
+    }
+
+    .helperButton{
+      /*display:none;*/
+    }
+    #pause{
+      position: absolute;
+      left:300px;
+      height: 10em;
+    }
+
+    #dividehelper{
+      position:absolute;
+      left:300px;
+      top:140px;
+      height: 10em;
+    }
+    #Addhelper{
+      position:absolute;
+      left:565px;
+    }
+    
+  </style>
+  <script>
+    const numel = document.getElementById("numerator");
+    const spel = document.getElementById("speed");
+    const timel = document.getElementById("timer");
+    const btel = document.getElementById("addBtn");
+    const spmel = document.getElementById("spm");
+    const recspmel = document.getElementById("recpm");
+    const mtel = document.getElementById("timer_m");
+    const rlclel = document.getElementById("realclicks");
+    const fkclel = document.getElementById("fakeclicks");
+    const pstmel = document.getElementById("pausedTime");
+
+    let timeStarted;
+    let time = new Date().getTime();
+    let clicks = 0;
+    let fakeClicks = 0;
+
+    let requiredCpmToSurvive = 0;
+    let s_timeSinceBeginning = 0;
+    let m_timeSinceBeginning = 0;
+    let cpm = 0;
+    let cps = 0;
+
+    let intervalPointer;
+    let HelperPause = false;
+    let pausedTime = 0;
+    let helperDivider = 1;
+
+    let HelperPopUpNextAppearanceTime = 30;
+    
+    function Death(){
+      alert("you died with score of " + cpm + " cpm and " + cps + " cps");
+    }
+
+    function UpdateTime(){
+      if(s_timeSinceBeginning >= 600){
+        alert("you've spent 10 minutes without losing! congratulations on beating the game.")
+        clearInterval(intervalPointer);
+        return;
+      }
+
+      if(s_timeSinceBeginning >= HelperPopUpNextAppearanceTime){
+        HelperPopUpNextAppearanceTime = +s_timeSinceBeginning + +GenRandomNumber(10,30);
+        
+        const whichhelper = GenRandomInt(1,3);
+        if(whichhelper == 1) document.getElementById("pause").style.display = "inline";
+        if(whichhelper == 2) document.getElementById("dividhelper").style.display = "inline";
+        if(whichhelper == 3) document.getElementById("Addhelper").style.display = "inline";
+      }
+
+      if(!HelperPause)
+      {
+        time = new Date().getTime();
+
+        s_timeSinceBeginning = parseFloat((time-timeStarted)/1000).toFixed(3)
+        m_timeSinceBeginning = parseFloat(s_timeSinceBeginning/60).toFixed(3);
+      }
+      
+      
+      cps = parseFloat((clicks + fakeClicks) / s_timeSinceBeginning).toFixed(2);
+      cpm = parseFloat((clicks + fakeClicks) / s_timeSinceBeginning*60).toFixed(2);
+      spel.innerHTML = cps;
+      spmel.innerHTML = cpm;
+
+      timel.innerHTML = s_timeSinceBeginning;
+      mtel.innerHTML = m_timeSinceBeginning
+
+      requiredCpmToSurvive = parseFloat((Math.sqrt(s_timeSinceBeginning)*20)/helperDivider).toFixed(2);
+      recspmel.innerHTML = requiredCpmToSurvive;
+
+      if(+cpm <= +requiredCpmToSurvive){
+        Death();
+        clearInterval(intervalPointer);
+        return;
+      }
+    }
+
+    function GenRandomNumber(from, to){
+      return (Math.random()*(to - from))+from;
+    }
+
+    function GenRandomInt(min, max){
+      // so that min is included too
+      min = min - 1;
+      return Math.ceil(Math.random()*(max-min)+min);
+    }
+
+    function Pause(seconds){
+      timeStarted += seconds*1000; // since i dont add time in an update but instead decrease current time from start time... i do an illusion of pause
+      pausedTime += seconds;
+      pstmel.innerHTML = parseFloat(pausedTime).toFixed(2);
+      HelperPause = true;
+      setTimeout(() => {
+        HelperPause = false;
+      }, seconds*1000);
+    }
+    function PauseBtn(){
+      Pause(GenRandomNumber(2,10));
+      document.getElementById("pause").style.display = "none";
+    }
+
+    function DivideRequired(){
+      helperDivider += 0.1;
+    }
+
+    function DivideBtn(){
+      DivideRequired();
+      document.getElementById("dividehelper").style.display = "none";
+    }
+
+    function AddRBtn(){
+      fakeClicks += GenRandomInt(1,100);
+      fkclel.innerHTML = fakeClicks;
+      document.getElementById("Addhelper").style.display = "none";
+    }
+
+    function start(){
+      timeStarted = new Date().getTime();
+      StartTimer();
+      add();
+      btel.onclick = add;
+    }
+    function add(){
+      clicks += 1;
+      rlclel.innerHTML = clicks;
+      numel.innerHTML = clicks + fakeClicks;
+    }
+    function StartTimer(){
+      intervalPointer =  setInterval(() => {
+      UpdateTime();
+    }, 330);
+    }
+  </script>
+</html>

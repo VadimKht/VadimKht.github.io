@@ -3,9 +3,6 @@ let textArea = document.getElementById("contents");
 let ABC101 = document.getElementById("ABC101");
 let ABC102 = document.getElementById("ABC102");
 
-// window manager.js function
-InitUpdate();
-
 function onclicked()
 {
     elementArray.forEach((element)=>{
