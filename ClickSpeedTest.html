@@ -22,9 +22,7 @@
     
     
     <p id="numerator">not started yet!</p>
-    <p>
       <p class="smallSpace">real clicks: <span id="realclicks">0</span></p> <p class="smallSpace">fake clicks: <span id="fakeclicks">0</span> </p>
-    </p>
     <p>
       <p class="smallSpace">timer: <span id="timer">0</span> s</p> 
       <p class="smallSpace"><span id="timer_m">0</span> m</p> 
@@ -38,6 +36,7 @@
       <p class="smallSpace">REQUIRED CPM TO SURVIVE: <span id="recpm">0</span></p>
       <p class="smallSpace">REQUIRED CPM DIVIDER: <span id="cpmdivider">1.0</span></p>
     </p>
+    <button onclick="DarkModeToggleBtn()">toggle dark mode</button>
   </body>
   <style>
     .helperButton{
@@ -80,7 +79,21 @@
     body{
       margin: 0px;
     }
-
+    
+    .dark-mode {
+      background-color: black;
+      color: white;
+    }
+    .darkModeBtn{
+      color:white;
+      background-color: black;
+    }
+    .darkModeBtn:hover{
+        background-color: #202020;
+    }
+    .darkModeBtn:active{
+        background-color: #404040;
+    }
     *{
       font-size: 36px;
       text-align: center;
@@ -312,6 +325,71 @@
       intervalPointer =  setInterval(() => {
       UpdateTime();
     }, 330);
+    }
+
+
+
+    // utility funcs for setting cookies comfortably
+    function getUTCTimeDur(dur_s)
+    {
+        let time = new Date();
+        time.setTime(time.getTime()+dur_s*1000);
+        time.toUTCString();
+        return time;
+    }
+
+    function getCookieValue(str){
+      const value = `; ${document.cookie}`;
+      const parts = value.split(`; `);
+      let res = "";
+      parts.forEach((element) => {
+        let elemval = element.split('=');
+        if(elemval[0] == str){	
+          res = elemval[1];
+        }
+      });
+      return res;
+    }
+    function setCookie(key, value, expiration_s){
+      if(expiration_s == undefined){
+        let string = key + "=" + value + ";SameSite=strict";
+        document.cookie = string;
+        return;
+      }
+      let string = key + "=" + value + ";expires=" + getUTCTimeDur(expiration_s).toUTCString() + ";SameSite=strict";
+      document.cookie = string;
+    }
+
+   
+
+    // get current cookie for if the dark mode is on
+    let toggleVal = getCookieValue("darkMode") == "true";
+
+    // if its dark mode in cookie, turn website dark on start.
+    if(toggleVal)
+    {
+      DarkModeToggle();
+    }
+
+    // function that both changes dark mode and cookie, made to be onclick=""
+    function DarkModeToggleBtn(){
+      CookieDarkModeTog();
+      DarkModeToggle();      
+    }
+
+    // toggles dark mode
+    function DarkModeToggle(){
+      document.body.classList.toggle("dark-mode");
+      const Buttons = document.getElementsByTagName("button");
+      for(let i = 0; i < Buttons.length; i++){
+        Buttons[i].classList.toggle("darkModeBtn"); 
+      }
+    }
+
+    // sets cookie
+    function CookieDarkModeTog(){
+      toggleVal = !toggleVal;
+      setCookie("darkMode", toggleVal, 60*60*24);
     }
   </script>
 </html>
