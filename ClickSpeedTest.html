@@ -87,9 +87,6 @@
       touch-action: manipulation;
     }
     @media(max-width: 760px){
-      body{
-        margin: 0px;
-      }
       .buttons{
         height:100px;
       }
@@ -118,15 +115,9 @@
       span{
         font-size: 18px;
       }
-      br{
-        line-height: 0px;
-      }
     }
 
     @media(max-height: 580px){
-      br{
-        display: none;
-      }
       p{
         font-size: 16px;
       }
@@ -137,6 +128,20 @@
         height:200px;
       }
       
+    }
+  
+    /*poor attempt at fixing long height short width that mobile phones have in portrait mode*/
+    @media(max-width:500px) and (max-height:1000px){
+      
+      .buttons{
+        height: 400px;
+      }
+      p{
+        font-size: 18px;
+      }
+      span{
+        font-size: 18px;
+      }
     }
 
   </style>
@@ -189,6 +194,7 @@
       const emptydiv = document.getElementById("emptydiv");
       emptydiv.appendChild(elem);
       const no_cheating_el = document.createElement("pre");
+      no_cheating_el.style.whiteSpace = "initial";
       no_cheating_el.innerHTML = "The magic gnome has spotted you are possibly using cheats! you are tapping at speed above 18 CPS!\n please do not cheat!\n you start bleeding from the wrath of the gnome. RIP."
       emptydiv.appendChild(no_cheating_el);
       gnome.play();
@@ -229,7 +235,7 @@
       }
       
       cps_r = clicks / ((time - realTimeStarted)/1000);
-      if(cps_r >= 19) Jumpscare();
+      if(cps_r >= 19 && clicks >= 3) Jumpscare();
 
       cps = parseFloat((clicks + fakeClicks) / s_timeSinceBeginning).toFixed(2);
       cpm = parseFloat((clicks + fakeClicks) / s_timeSinceBeginning*60).toFixed(2);

@@ -28,7 +28,8 @@ function newWindow()
         {
             size = Number(parse[1]);
             if(parse[2] == "text"){
-                contents = parse[3];
+                const text = parse.slice(3).join(' ');
+                contents = text;
             }
         }
     }

@@ -25,11 +25,17 @@ button{
 #contents{
     font-size: 36px;
 }
-#ABC101
+#ABC101 
 {
     background-color: darkblue;
+}
+#ABC101 .contentElement{
     display:flex;
     flex-direction: column;
+}
+.contentElement{
+    overflow-y: scroll;
+    height: 100%;
 }
 
 p{

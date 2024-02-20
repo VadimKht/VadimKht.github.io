@@ -123,11 +123,21 @@ function AppendHolder(elementToAppendTo, isCloseable, isResizeable = true, width
         return;
     }
     
+    // magic to turn all element to append to's inner html into its child contentElement
+    const contentElement = document.createElement("div");
+    contentElement.className = "contentElement";
+    contentElement.innerHTML = elementToAppendTo.innerHTML;
+    
+    elementToAppendTo.innerHTML = "";
+
+    
     // apply necessary styling to our element
     elementToAppendTo.style.position = "absolute";
     elementToAppendTo.style.userSelect = "none";
     elementToAppendTo.className = "vWindow";
     elementToAppendTo.style.width = width + "px";
+    elementToAppendTo.append(contentElement);
+    
 
     // create element for dragging the window
     let holdElement = document.createElement("div");
@@ -135,8 +145,8 @@ function AppendHolder(elementToAppendTo, isCloseable, isResizeable = true, width
 
     // for reset position button, probably not needed anymore
     let initialPosition = {
-        xPos: elementToAppendTo.getBoundingClientRect().x,
-        yPos: elementToAppendTo.getBoundingClientRect().y
+        xPos: holdElement.getBoundingClientRect().x,
+        yPos: holdElement.getBoundingClientRect().y
     }
     if(isCloseable === true)
     {
@@ -150,8 +160,8 @@ function AppendHolder(elementToAppendTo, isCloseable, isResizeable = true, width
         // my attempt to make the resize fit inside close button if you resize it to 0 height
         closeButton.style.right = "-2px";
         closeButton.style.top = "8px";
-        closeButton.addEventListener("mousedown", (event) => closeButton.parentNode.parentNode.remove());
-        closeButton.addEventListener("touchend", (event) => closeButton.parentNode.parentNode.remove());
+        closeButton.addEventListener("mousedown", (event) => closeButton.parentNode.parentNode.parentNode.remove());
+        closeButton.addEventListener("touchend", (event) => closeButton.parentNode.parentNode.parentNode.remove());
         holdElement.append(closeButton);
     }
 
