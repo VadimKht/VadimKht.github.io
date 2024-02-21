@@ -145,8 +145,8 @@ function AppendHolder(elementToAppendTo, isCloseable, isResizeable = true, width
 
     // for reset position button, probably not needed anymore
     let initialPosition = {
-        xPos: holdElement.getBoundingClientRect().x,
-        yPos: holdElement.getBoundingClientRect().y
+        xPos: elementToAppendTo.getBoundingClientRect().x,
+        yPos: elementToAppendTo.getBoundingClientRect().y
     }
     if(isCloseable === true)
     {
