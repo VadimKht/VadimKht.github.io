@@ -214,7 +214,7 @@
     let timeLimit = 600;
     let helperdividerAddition = 0.1;
 
-    // the set value is for first appearance
+    // the assigned value is for first appearance
     let HelperPopUpNextAppearanceTime = 20;
 
     let GameOver = false;
@@ -249,14 +249,26 @@
 
     // LATER MAKE BETTER ALGORITHM TO ALWAYS SHOW NEW HELPER IF IT CHOSE ALREADY OPENED ONE
     // I WORKED ON IT AT 1 AM AND SPENT 1 HOUR ON FAILING TO FIND A SOLUTION 
+    // edit: me from the day later: i still have no idea how to do it
+    // edit: i made it work but it looks very not performant
     function DecideHelperToAppear(){
-      const whichhelper = GenRandomInt(1,3);
+      const from = 1;
+      const to = 3;
+      const whichhelper = GenRandomInt(from,to);
       const helpercomponentPause = document.getElementById("pause");
       const helpercomponentDivide = document.getElementById("dividehelper");
       const helpercomponentAddFake = document.getElementById("Addhelper");
       let ComponentArr = [helpercomponentPause, helpercomponentDivide, helpercomponentAddFake];
-      TestHelper(ComponentArr[whichhelper-1]);
+      if(!TestHelper(ComponentArr[whichhelper-1])){
+        for(let i = 0; i <= to-1; i++){
+          if(ComponentArr[i].style.display != "inline"){
+            ComponentArr[i].style.display = "inline";
+            break;
+          }
+        }
+      }
     }
+
     function TestHelper(hlpelement){
       if(hlpelement.style.display != "inline") {
         hlpelement.style.display = "inline";
@@ -267,18 +279,28 @@
 
     function UpdateTime(){
       if(s_timeSinceBeginning >= timeLimit){
-        alert("you've spent" + parseFloat(timeLimit/60).toFixed(0) + "minutes without losing! congratulations on beating the game.")
+        alert("you've spent " + parseFloat(timeLimit/60).toFixed(0) + " minutes without losing! congratulations on beating the " + ((DifficultyChosen == "Insane") ? "INSANE DIFFICULTY " : "") + "game.")
         GameOver = true;
         clearInterval(intervalPointer);
         return;
       }
 
-      if(s_timeSinceBeginning >= HelperPopUpNextAppearanceTime){
-        if(DifficultyChosen != "Insane") HelperPopUpNextAppearanceTime = +s_timeSinceBeginning + +GenRandomNumber(10,30);
-        if(DifficultyChosen == "Insane") HelperPopUpNextAppearanceTime = +s_timeSinceBeginning + +GenRandomNumber(4,20);
-        
-        DecideHelperToAppear();
+      if(DifficultyChosen != "Insane"){
+        if(s_timeSinceBeginning >= HelperPopUpNextAppearanceTime){
+          HelperPopUpNextAppearanceTime = +s_timeSinceBeginning + +GenRandomNumber(10,30)
+          DecideHelperToAppear();
+        }
       }
+
+      // allows popup timer during paused time
+      if(DifficultyChosen == "Insane"){
+        const s_timeSinceRealBeginning = ((time-realTimeStarted)/1000);
+        if(s_timeSinceRealBeginning >= HelperPopUpNextAppearanceTime){
+          HelperPopUpNextAppearanceTime = +s_timeSinceRealBeginning + +GenRandomNumber(4,20);
+          DecideHelperToAppear();
+        }
+      }
+
       time = new Date().getTime();
 
       if(!HelperPause)
@@ -436,10 +458,34 @@
       DarkModeToggle();
     }
 
+
     // function that both changes dark mode and cookie, made to be onclick=""
     function DarkModeToggleBtn(){
       CookieDarkModeTog();
-      DarkModeToggle();      
+      DarkModeToggle();   
+      StopEpilepcy();   
+    }
+
+    let FirstDarkModeClickTime; 
+    let DarkModeClickTime;
+    let FirstClickGate = true;
+    let DarkModeClicks = 0;
+
+    function StopEpilepcy(){
+      if(FirstClickGate) {
+        FirstClickGate = false;
+        FirstDarkModeClickTime = new Date().getTime();
+      };
+      DarkModeClickTime = new Date().getTime();
+      if((DarkModeClickTime - FirstDarkModeClickTime)/1000 >= 0.5) {
+        FirstClickGate = true;
+        DarkModeClicks = 0
+      };
+      DarkModeClicks += 1;
+      if(DarkModeClicks >= 3)
+      {
+        alert("slow down there! what if you have epilepcy?");
+      }
     }
 
     // toggles dark mode
@@ -475,7 +521,7 @@
     function SelectInsaneDifficulty(){
       ShowGame();
       DifficultyChosen = "Insane";
-      timeLimit = 480;
+      timeLimit = 300;
       helperdividerAddition = 1;
       document.getElementById("dividehelper").innerHTML = "Divide required cpm by " + helperdividerAddition;
       HelperPopUpNextAppearanceTime = 10
