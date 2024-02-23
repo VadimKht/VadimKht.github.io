@@ -12,6 +12,7 @@
         <button onclick="SelectHardDifficulty()">Hard</button>
         <button onclick="SelectInsaneDifficulty()">Insane</button>
       </div>
+      <a href="./ClickSpeedTestGuide.html">Guide</a>
     </div>
     <div id="maincontrols" class="row buttons maincontrols">
       <div>
@@ -147,7 +148,8 @@
 
     @media(max-height: 580px){
       p{
-        font-size: 16px;
+        font-size: 14px;
+        margin: 8px 0;
       }
       span{
         font-size:16px;
@@ -174,7 +176,10 @@
 
   </style>
 
+  <script src="./CookieUtility.js"></script>
+
   <script>
+    'use strict'
     const numel = document.getElementById("numerator");
     const spel = document.getElementById("speed");
     const timel = document.getElementById("timer");
@@ -191,7 +196,7 @@
 
     // the bigger the number the faster  required CPM raises.
     let Difficulty = 55;
-    let DifficultyChosen = "normal";
+    let DifficultyChosen = "Normal";
 
     let timeStarted;
     let realTimeStarted;
@@ -205,10 +210,14 @@
     let m_timeSinceBeginning = 0;
     let cpm = 0;
     let cps = 0;
+    let cps_r = 0;
 
     let intervalPointer;
-    let HelperPause = false;
+
     let pausedTime = 0;
+    let pausedUntil = 0;
+    let currentlyPaused = false;
+
     let helperDivider = 1;
 
     let timeLimit = 600;
@@ -285,6 +294,8 @@
         return;
       }
 
+      time = new Date().getTime();
+
       if(DifficultyChosen != "Insane"){
         if(s_timeSinceBeginning >= HelperPopUpNextAppearanceTime){
           HelperPopUpNextAppearanceTime = +s_timeSinceBeginning + +GenRandomNumber(10,30)
@@ -301,10 +312,9 @@
         }
       }
 
-      time = new Date().getTime();
-
-      if(!HelperPause)
+      if(pausedUntil - time <= 0)
       {
+        if(currentlyPaused) currentlyPaused = false;
         s_timeSinceBeginning = parseFloat((time-timeStarted)/1000).toFixed(3)
         m_timeSinceBeginning = parseFloat(s_timeSinceBeginning/60).toFixed(3);
       }
@@ -346,10 +356,9 @@
       timeStarted += seconds*1000; // since i dont add time in an update but instead decrease current time from start time... i do an illusion of pause
       pausedTime += seconds;
       pstmel.innerHTML = parseFloat(pausedTime).toFixed(2);
-      HelperPause = true;
-      setTimeout(() => {
-        HelperPause = false;
-      }, seconds*1000);
+      if (!currentlyPaused) pausedUntil = new Date().getTime()+(seconds*1000);
+      if (currentlyPaused) pausedUntil += seconds * 1000;
+      currentlyPaused = true;
     }
     function PauseBtn(){
       const coefByTime = 1/(s_timeSinceBeginning/10)
@@ -376,7 +385,7 @@
     function AdditionalClicks(){
       document.getElementById("AdditionalClicksUpgrade").style.display = "none";
       if(clicksUpgradeAdd == 0) {
-        if(DifficultyChosen == "Insane") clicksUpgradeAdd = 0.5;
+        if(DifficultyChosen == "Insane") clicksUpgradeAdd = 0.25;
         if(DifficultyChosen == "Hard") clicksUpgradeAdd = 0.25;
         if(DifficultyChosen == "Normal") clicksUpgradeAdd = 0.125;
       }
@@ -384,7 +393,7 @@
         if(DifficultyChosen == "Hard") clicksUpgradeAdd *= 1.8;
         if(DifficultyChosen != "Hard") clicksUpgradeAdd *= 2;
       }
-      fprcel.innerHTML = clicksUpgradeAdd;
+      fprcel.innerHTML = parseFloat(clicksUpgradeAdd).toFixed(3);
     }
 
     function start(){
@@ -416,37 +425,7 @@
     }, 330);
     }
 
-    // utility funcs for setting cookies comfortably
-    function getUTCTimeDur(dur_s)
-    {
-        let time = new Date();
-        time.setTime(time.getTime()+dur_s*1000);
-        time.toUTCString();
-        return time;
-    }
-
-    function getCookieValue(str){
-      const value = `; ${document.cookie}`;
-      const parts = value.split(`; `);
-      let res = "";
-      parts.forEach((element) => {
-        let elemval = element.split('=');
-        if(elemval[0] == str){	
-          res = elemval[1];
-        }
-      });
-      return res;
-    }
-    function setCookie(key, value, expiration_s){
-      if(expiration_s == undefined){
-        let string = key + "=" + value + ";SameSite=strict";
-        document.cookie = string;
-        return;
-      }
-      let string = key + "=" + value + ";expires=" + getUTCTimeDur(expiration_s).toUTCString() + ";SameSite=strict";
-      document.cookie = string;
-    }
-
+    
    
 
     // get current cookie for if the dark mode is on
@@ -514,17 +493,17 @@
     }
     function SelectHardDifficulty(){
       ShowGame();
-      Difficulty = 60;
+      Difficulty = 100;
       DifficultyChosen = "Hard";
       cdel.innerHTML = "Hard";
     }
     function SelectInsaneDifficulty(){
       ShowGame();
       DifficultyChosen = "Insane";
-      timeLimit = 300;
+      timeLimit = 240;
       helperdividerAddition = 1;
       document.getElementById("dividehelper").innerHTML = "Divide required cpm by " + helperdividerAddition;
-      HelperPopUpNextAppearanceTime = 10
+      HelperPopUpNextAppearanceTime = 10;
       cdel.innerHTML = "Insane";
     }
   </script>
