@@ -1,3 +1,3 @@
-import testing from "./anotherfscr"
+import testing from "./anotherfscr.js"
 
 testing();
