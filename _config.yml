@@ -1,1 +1,1 @@
-keep_files: stnextbuild/_next
+include: [_next]
