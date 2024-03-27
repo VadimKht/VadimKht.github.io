@@ -160,8 +160,8 @@ function AppendHolder(elementToAppendTo, isCloseable, isResizeable = true, width
         // my attempt to make the resize fit inside close button if you resize it to 0 height
         closeButton.style.right = "-2px";
         closeButton.style.top = "8px";
-        closeButton.addEventListener("mousedown", (event) => closeButton.parentNode.parentNode.parentNode.remove());
-        closeButton.addEventListener("touchend", (event) => closeButton.parentNode.parentNode.parentNode.remove());
+        closeButton.addEventListener("mousedown", (event) => closeButton.parentNode.parentNode.remove());
+        closeButton.addEventListener("touchend", (event) => closeButton.parentNode.parentNode.remove());
         holdElement.append(closeButton);
     }
 

@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My webpage</title>
+    <link rel="stylesheet" href="./windows.css">
+    <link rel="stylesheet" href="./WindowManager.css">
+    
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
+</head>
+<body>
+    <header>
+        <div id="headerInfo"> 
+            <h1>Welcome to my website</h1>
+            <p>window manager</p>
+
+         </div>
+         <button onclick="AppendHolder(headerInfo, true, true, 1500)">Turn it to a window</button>
+    </header>
+    <main id="root">
+        <div id="ABC101">
+            Welcome to my website
+            <button onclick="onclicked()">reset positions</button>
+            <button onclick="newWindow()">Make a new window</button>
+            <p>todo new window creation params</p>
+            <!--issues with this textarea is that i can't set its height by default? 
+                and the input is saved when you update page and 
+                it can be resized on its width which makes it feel weird, fix later?
+                in face the text area might go out of borders and user wow n't be able to change it lol -->
+            <textarea placeholder='example "size 196 text hello world noresize"' type="text" id="inputText"></textarea>
+        </div>
+
+        <div id="ABC102">
+            second bar
+        </div>
+    </main>
+    <footer>
+
+    </footer>
+    <script src="./WindowManager.js"></script>
+    <script src="./windows.js"></script>
+</body>
+</html>
