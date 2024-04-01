@@ -9,8 +9,34 @@ let glCanvas = null;
 // details
 
 let aspectRatio;
-let currentRotation = [0, 1];
-let currentScale = [1.0, 1.0];
+
+// https://www.alanzucconi.com/wp-content/uploads/2016/02/2D_affine_transformation_matrix.svg_.png
+// https://wikimedia.org/api/rest_v1/media/math/render/svg/8ea4e438d7439b8fa504fb53fd7fafd678007243
+const width = 1920;
+const height = 1080;
+const left = -1.0;
+const right = 1.0;
+const _top = 1.0;
+const bottom = -1.0;
+const far = 100.0;
+const near = 0.0;
+let angle = 1;
+let view = [Math.cos(angle), 0.0, Math.sin(angle), 0.0,
+            0.0, 1.0, 0.0, 0.0,
+            -Math.sin(angle), 0.0, Math.cos(angle), 0.0,
+            0.0, 0.0, 0.0, 1.0];
+let model = [1.0, 0.0, 0.0, 0.0,
+             0.0, 1.0, 0.0, 0.0,
+             0.0, 0.0, 1.0, 0.0,
+             0.0, 0.0, 0.0, 1.0];
+
+//ortho
+let projection = [ 2/(right-left), 0.0, 0.0, -((right+left)/(right-left)),
+                  0.0, 2/(_top-bottom), 0.0, -((_top+bottom)/(_top-bottom)),
+                  0.0, 0.0, -2/(far-near), -((far+near)/(far-near)),
+                  0.0, 0.0, 0.0, 1.0]
+
+console.log(projection);
 
 // Vertex information
 
@@ -19,21 +45,16 @@ let vertexBuffer;
 let vertexNumComponents;
 let vertexCount;
 
-// Rendering data shared with the
-// scalers.
+let colorBuffer;
 
-let uScalingFactor;
-let uGlobalColor;
-let uRotationVector;
+let aColor;
 let aVertexPosition;
 
-// Animation timing
+let uView;
+let uModel;
+let uProjection;
 
 let shaderProgram;
-let currentAngle;
-let previousTime = 0.0;
-let degreesPerSecond = 90.0;
-
 
 function startup(){
     /** @type {HTMLCanvasElement} */
@@ -57,18 +78,26 @@ function startup(){
 
     shaderProgram = buildShaderProgram(shaderSet);
     aspectRatio = glCanvas.width / glCanvas.height;
-    currentRotation = [0, 1];
-    currentScale = [1.0, aspectRatio];
+
+    let colorArray = new Float32Array(
+      [0.5, 0.4, 0.7, 1.0,
+       0.4, 0.5, 0.4, 1.0,
+       0.2, 0.8, 0.5, 1.0]);
+
     vertexArray = new Float32Array([
-        -0.5, 0.5, 0.5, 0.5, 0.5, -0.5, -0.5, 0.5, 0.5, -0.5, -0.5, -0.5,
+        -0.5, 0.5, 0.0,
+        0.5, 0.5, 0.0,
+        0.5, -0.5, 0.0
     ]);
 
     vertexBuffer = gl.createBuffer();
     gl.bindBuffer(gl.ARRAY_BUFFER, vertexBuffer);
     gl.bufferData(gl.ARRAY_BUFFER, vertexArray, gl.STATIC_DRAW);
 
-    vertexNumComponents = 2;
-    vertexCount = vertexArray.length / vertexNumComponents;
+    colorBuffer = gl.createBuffer();
+    gl.bindBuffer(gl.ARRAY_BUFFER, colorBuffer);
+    gl.bufferData(gl.ARRAY_BUFFER, colorArray, gl.STATIC_DRAW);
+
 
     currentAngle = 0.0;
 
@@ -119,43 +148,52 @@ function compileShader(id, type) {
     gl.clearColor(0.8, 0.9, 1.0, 1.0);
     gl.clear(gl.COLOR_BUFFER_BIT);
   
-    const radians = (currentAngle * Math.PI) / 180.0;
-    currentRotation[0] = Math.sin(radians);
-    currentRotation[1] = Math.cos(radians);
-  
     gl.useProgram(shaderProgram);
   
-    uScalingFactor = gl.getUniformLocation(shaderProgram, "uScalingFactor");
-    uGlobalColor = gl.getUniformLocation(shaderProgram, "uGlobalColor");
-    uRotationVector = gl.getUniformLocation(shaderProgram, "uRotationVector");
-  
-    gl.uniform2fv(uScalingFactor, currentScale);
-    gl.uniform2fv(uRotationVector, currentRotation);
-    gl.uniform4fv(uGlobalColor, [0.1, 0.7, 0.2, 1.0]);
-  
-    gl.bindBuffer(gl.ARRAY_BUFFER, vertexBuffer);
-  
+    angle += 0.01;
+    view = [Math.cos(angle), 0.0, Math.sin(angle), 0.0,
+      0.0, 1.0, 0.0, 0.0,
+      -Math.sin(angle), 0.0, Math.cos(angle), 0.0,
+      0.0, 0.0, 0.0, 1.0];
+
+
+
+    uModel = gl.getUniformLocation(shaderProgram, "model");
+    uView = gl.getUniformLocation(shaderProgram, "view");
+    uProjection = gl.getUniformLocation(shaderProgram, "projection");
     aVertexPosition = gl.getAttribLocation(shaderProgram, "aVertexPosition");
-  
+    aColor = gl.getAttribLocation(shaderProgram, "aColor");
+
+    gl.uniformMatrix4fv(uModel, false, model);
+    gl.uniformMatrix4fv(uView, false, view);
+    gl.uniformMatrix4fv(uProjection,false, projection);
+
     gl.enableVertexAttribArray(aVertexPosition);
+    gl.bindBuffer(gl.ARRAY_BUFFER, vertexBuffer);
     gl.vertexAttribPointer(
       aVertexPosition,
-      vertexNumComponents,
+      3,
+      gl.FLOAT,
+      false,
+      0,
+      0,
+    );
+    
+
+    gl.enableVertexAttribArray(aColor);
+    gl.bindBuffer(gl.ARRAY_BUFFER, colorBuffer);
+    gl.vertexAttribPointer(
+      aColor,
+      4,
       gl.FLOAT,
       false,
       0,
       0,
     );
   
-    gl.drawArrays(gl.TRIANGLES, 0, vertexCount);
+    gl.drawArrays(gl.TRIANGLES, 0, 3);
   
     requestAnimationFrame((currentTime) => {
-      const deltaAngle =
-        ((currentTime - previousTime) / 1000.0) * degreesPerSecond;
-  
-      currentAngle = (currentAngle + deltaAngle) % 360;
-  
-      previousTime = currentTime;
       animateScene();
     });
   }
