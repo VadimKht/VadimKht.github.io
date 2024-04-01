@@ -1,5 +1,12 @@
 <!DOCTYPE html>
 <html>
+  <head>
+    <title>Clicker game</title>
+    <meta content="Clicker game" property="og:title" />
+    <meta content="this is vadiks2003's clicker game. click to win and dont click to die." property="og:description" />
+    <meta content="https://vadiks2003.github.io/clickergame/" property="og:url" />
+    <meta content="https://vadiks2003.github.io/clickergame/embedimage.png" property="og:image" />
+  </head>
   <body>
     <div id="emptydiv"></div>
     <div id="difficultychoose" class="column center difficultychoose">
@@ -239,7 +246,7 @@
       emptydiv.appendChild(elem);
       const no_cheating_el = document.createElement("pre");
       no_cheating_el.style.whiteSpace = "initial";
-      no_cheating_el.innerHTML = "The magic gnome has spotted you are possibly using cheats! you are tapping at speed above 18 CPS!\n please do not cheat!\n you start bleeding from the wrath of the gnome. RIP."
+      no_cheating_el.textContent = "The magic gnome has spotted you are possibly using cheats! you are tapping at speed above 18 CPS!\n please do not cheat!\n you start bleeding from the wrath of the gnome. RIP."
       emptydiv.appendChild(no_cheating_el);
       gnome.play();
       GameOver = true;
@@ -321,16 +328,16 @@
 
       cps = parseFloat((clicks + fakeClicks) / s_timeSinceBeginning).toFixed(2);
       cpm = parseFloat((clicks + fakeClicks) / s_timeSinceBeginning*60).toFixed(2);
-      spel.innerHTML = cps;
-      spmel.innerHTML = cpm;
+      spel.textContent = cps;
+      spmel.textContent = cpm;
 
-      timel.innerHTML = s_timeSinceBeginning;
-      mtel.innerHTML = m_timeSinceBeginning
+      timel.textContent = s_timeSinceBeginning;
+      mtel.textContent = m_timeSinceBeginning
 
       if(DifficultyChosen != "Insane") requiredCpmToSurvive = parseFloat((Math.sqrt(s_timeSinceBeginning)*Difficulty)/helperDivider).toFixed(2);
       if(DifficultyChosen == "Insane") requiredCpmToSurvive = parseFloat((Math.pow(s_timeSinceBeginning,2))/helperDivider).toFixed(2);
 
-      recspmel.innerHTML = requiredCpmToSurvive;
+      recspmel.textContent = requiredCpmToSurvive;
 
       if(+cpm <= +requiredCpmToSurvive){
         Death();
@@ -352,7 +359,7 @@
     function Pause(seconds){
       timeStarted += seconds*1000; // since i dont add time in an update but instead decrease current time from start time... i do an illusion of pause
       pausedTime += seconds;
-      pstmel.innerHTML = parseFloat(pausedTime).toFixed(2);
+      pstmel.textContent = parseFloat(pausedTime).toFixed(2);
       if (!currentlyPaused) pausedUntil = new Date().getTime()+(seconds*1000);
       if (currentlyPaused) pausedUntil += seconds * 1000;
       currentlyPaused = true;
@@ -365,7 +372,7 @@
 
     function DivideRequired(){
       helperDivider += helperdividerAddition;
-      cpmdivel.innerHTML = parseFloat(helperDivider).toFixed(1);
+      cpmdivel.textContent = parseFloat(helperDivider).toFixed(1);
     }
 
     function DivideBtn(){
@@ -375,7 +382,7 @@
 
     function AddRBtn(){
       fakeClicks += GenRandomInt(10,500);
-      fkclel.innerHTML = parseFloat(fakeClicks).toFixed(0);
+      fkclel.textContent = parseFloat(fakeClicks).toFixed(0);
       document.getElementById("Addhelper").style.display = "none";
     }
 
@@ -390,7 +397,7 @@
         if(DifficultyChosen == "Hard") clicksUpgradeAdd *= 1.8;
         if(DifficultyChosen != "Hard") clicksUpgradeAdd *= 2;
       }
-      fprcel.innerHTML = parseFloat(clicksUpgradeAdd).toFixed(3);
+      fprcel.textContent = parseFloat(clicksUpgradeAdd).toFixed(3);
     }
 
     function start(){
@@ -405,12 +412,12 @@
       if(GameOver) return;
       clicks += 1;
 
-      rlclel.innerHTML = clicks;
+      rlclel.textContent = clicks;
       fakeClicks += clicksUpgradeAdd;
 
-      fkclel.innerHTML = parseFloat(fakeClicks).toFixed(0);
+      fkclel.textContent = parseFloat(fakeClicks).toFixed(0);
       // weird beihavior: if i set toFixed to negative one, it will give error and cause gnome to appear. why? how?
-      numel.innerHTML = parseFloat(clicks + fakeClicks).toFixed(0);
+      numel.textContent = parseFloat(clicks + fakeClicks).toFixed(0);
 
       if(clicks == 100) document.getElementById("AdditionalClicksUpgrade").style.display = "inline";
       if(clicks % 500 == 0) document.getElementById("AdditionalClicksUpgrade").style.display = "inline";
@@ -486,22 +493,22 @@
 
     function SelectNormalDifficulty(){
       ShowGame();
-      cdel.innerHTML = "Normal";
+      cdel.textContent = "Normal";
     }
     function SelectHardDifficulty(){
       ShowGame();
       Difficulty = 100;
       DifficultyChosen = "Hard";
-      cdel.innerHTML = "Hard";
+      cdel.textContent = "Hard";
     }
     function SelectInsaneDifficulty(){
       ShowGame();
       DifficultyChosen = "Insane";
       timeLimit = 240;
       helperdividerAddition = 1;
-      document.getElementById("dividehelper").innerHTML = "Divide required cpm by " + helperdividerAddition;
+      document.getElementById("dividehelper").textContent = "Divide required cpm by " + helperdividerAddition;
       HelperPopUpNextAppearanceTime = 10;
-      cdel.innerHTML = "Insane";
+      cdel.textContent = "Insane";
     }
   </script>
 </html>
