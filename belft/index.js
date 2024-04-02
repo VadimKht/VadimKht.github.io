@@ -1,9 +1,15 @@
+import { multiplyMatrices } from "./util.js";
 
 
 window.addEventListener("load", startup, false);
 
+
 let gl = null;
 let glCanvas = null;
+
+let model;
+let view;
+let projection;
 
 // https://www.alanzucconi.com/wp-content/uploads/2016/02/2D_affine_transformation_matrix.svg_.png
 // https://wikimedia.org/api/rest_v1/media/math/render/svg/8ea4e438d7439b8fa504fb53fd7fafd678007243
@@ -25,6 +31,9 @@ let cameraZ = 0.0;
 let cameraXrot = 0.0;
 let cameraYrot = 0.0;
 let cameraZrot = 0.0;
+let speed = 0.05;
+const runSpeed = 0.12;
+const normalSpeed = 0.05;
 
 let movingLeft = false;
 let movingRight = false;
@@ -66,11 +75,11 @@ let uProjection;
 let shaderProgram;
 
 window.addEventListener("keydown", function (event) {
-  if(event.key == "ArrowDown" || event.key == "w" || event.key == "W"){
+  if(event.key == "ArrowDown" || event.key == "s" || event.key == "S"){
     movingDown = true;
     return;
   }
-  if(event.key == "ArrowUp" || event.key == "s" || event.key == "S")
+  if(event.key == "ArrowUp" || event.key == "w" || event.key == "W")
   {
     movingUp = true;
     return;
@@ -92,15 +101,19 @@ window.addEventListener("keydown", function (event) {
     strafingRight = true;
     return;
   }
+  if(event.key == "Shift"){
+    speed = runSpeed;
+    return;
+  }
   // Cancel the default action to avoid it being handled twice
 }, true);
 
 window.addEventListener("keyup", function (event) {
-  if(event.key == "ArrowDown" || event.key == "w" || event.key == "W"){
+  if(event.key == "ArrowDown" || event.key == "s" || event.key == "S"){
     movingDown = false;
     return;
   }
-  if(event.key == "ArrowUp" || event.key == "s" || event.key == "S")
+  if(event.key == "ArrowUp" || event.key == "w" || event.key == "W")
   {
     movingUp = false;
     return;
@@ -120,6 +133,10 @@ window.addEventListener("keyup", function (event) {
   }
   if(event.key == "e" || event.key == "E"){
     strafingRight = false;
+    return;
+  }
+  if(event.key == "Shift"){
+    speed = normalSpeed;
     return;
   }
 }, true);
@@ -150,48 +167,52 @@ function startup(){
       [0.5, 0.4, 0.7, 1.0,
        0.4, 0.5, 0.4, 1.0,
        0.2, 0.8, 0.5, 1.0,
+
        0.5, 0.4, 0.7, 1.0,
        0.4, 0.5, 0.4, 1.0,
        0.2, 0.8, 0.5, 1.0,
+
+
        0.5, 0.4, 0.7, 1.0,
        0.4, 0.5, 0.4, 1.0,
        0.2, 0.8, 0.5, 1.0,
+
        0.5, 0.4, 0.7, 1.0,
        0.4, 0.5, 0.4, 1.0,
        0.2, 0.8, 0.5, 1.0,
+
+
        0.5, 0.4, 0.7, 1.0,
        0.4, 0.5, 0.4, 1.0,
        0.2, 0.8, 0.5, 1.0,
+
        0.5, 0.4, 0.7, 1.0,
        0.4, 0.5, 0.4, 1.0,
        0.2, 0.8, 0.5, 1.0,
+
+
        0.5, 0.4, 0.7, 1.0,
        0.4, 0.5, 0.4, 1.0,
        0.2, 0.8, 0.5, 1.0,
+
        0.5, 0.4, 0.7, 1.0,
        0.4, 0.5, 0.4, 1.0,
        0.2, 0.8, 0.5, 1.0,
+
+
        0.5, 0.4, 0.7, 1.0,
        0.4, 0.5, 0.4, 1.0,
        0.2, 0.8, 0.5, 1.0,
+
        0.5, 0.4, 0.7, 1.0,
        0.4, 0.5, 0.4, 1.0,
        0.2, 0.8, 0.5, 1.0,
+
+
        0.5, 0.4, 0.7, 1.0,
        0.4, 0.5, 0.4, 1.0,
        0.2, 0.8, 0.5, 1.0,
-       0.5, 0.4, 0.7, 1.0,
-       0.4, 0.5, 0.4, 1.0,
-       0.2, 0.8, 0.5, 1.0,
-       0.5, 0.4, 0.7, 1.0,
-       0.4, 0.5, 0.4, 1.0,
-       0.2, 0.8, 0.5, 1.0,
-       0.5, 0.4, 0.7, 1.0,
-       0.4, 0.5, 0.4, 1.0,
-       0.2, 0.8, 0.5, 1.0,
-       0.5, 0.4, 0.7, 1.0,
-       0.4, 0.5, 0.4, 1.0,
-       0.2, 0.8, 0.5, 1.0,
+
        0.5, 0.4, 0.7, 1.0,
        0.4, 0.5, 0.4, 1.0,
        0.2, 0.8, 0.5, 1.0,
@@ -267,6 +288,9 @@ function startup(){
     gl.bindBuffer(gl.ARRAY_BUFFER, colorBuffer);
     gl.bufferData(gl.ARRAY_BUFFER, colorArray, gl.STATIC_DRAW);
     gl.enable(gl.DEPTH_TEST);
+    gl.depthFunc(gl.LESS);
+
+
 
     animateScene();
 }
@@ -288,7 +312,6 @@ function buildShaderProgram(shaderInfo) {
       console.log("Error linking shader program:");
       console.log(gl.getProgramInfoLog(program));
     }
-  
     return program;
 }
 
@@ -317,28 +340,64 @@ function compileShader(id, type) {
   
     gl.useProgram(shaderProgram);
 
-    const speed = 0.03;
-    if(movingUp) cameraZ += speed;
-    if(movingDown) cameraZ -= speed;
-    if(movingLeft) cameraYrot -= speed;
-    if(movingRight) cameraYrot += speed;
-    if(strafingLeft) cameraX -= speed*1.5;
-    if(strafingRight) cameraX += speed*1.5;
-    angleX = 0.5;
+    if(movingUp){
+      cameraZ += speed * Math.cos(cameraYrot);
+      cameraX += -speed * Math.sin(cameraYrot);
+    }
+    if(movingDown){
+      cameraZ += -speed * Math.cos(cameraYrot);
+      cameraX += speed * Math.sin(cameraYrot);
+    }
+    if(movingLeft){
+      cameraYrot -= speed;
+    } 
+    if(movingRight) {
+      cameraYrot += speed;
+    }
+    if(strafingRight){
+      cameraX += -speed * Math.cos(cameraYrot);
+      cameraZ += -speed * Math.sin(cameraYrot);
+    }
+    if(strafingLeft){
+      cameraX += speed*1.5 * Math.cos(cameraYrot);
+      cameraZ += speed*1.5 * Math.sin(cameraYrot);
+    }
+
 
     model = [Math.cos(angleY) * Math.cos(angleZ), Math.cos(angleY) * Math.sin(angleZ), -Math.sin(angleY), 0.0,
       (Math.sin(angleX) * Math.sin(angleY) * Math.cos(angleZ)) - (Math.cos(angleX) * Math.sin(angleZ)), (Math.sin(angleX) * Math.sin(angleY) * Math.sin(angleZ)) + (Math.cos(angleX) * Math.cos(angleZ)), Math.sin(angleX) * Math.cos(angleY), 0.0,
       (Math.cos(angleX) * Math.sin(angleY) * Math.cos(angleZ)) + (Math.sin(angleX) * Math.sin(angleZ)), (Math.cos(angleX) * Math.sin(angleY) * Math.sin(angleZ)) - (Math.sin(angleX) * Math.cos(angleZ)), Math.cos(angleX) * Math.cos(angleY), 0.0,
-      0.0, 0.0, -1.0, 1.0];
-    view = [Math.cos(cameraYrot) * Math.cos(cameraZrot), Math.cos(cameraYrot) * Math.sin(cameraZrot), -Math.sin(cameraYrot), 0.0,
-      (Math.sin(cameraXrot) * Math.sin(cameraYrot) * Math.cos(cameraZrot)) - (Math.cos(cameraXrot) * Math.sin(cameraZrot)), (Math.sin(cameraXrot) * Math.sin(cameraYrot) * Math.sin(cameraZrot)) + (Math.cos(cameraXrot) * Math.cos(cameraZrot)), Math.sin(cameraXrot) * Math.cos(cameraYrot), 0.0,
-      (Math.cos(cameraXrot) * Math.sin(cameraYrot) * Math.cos(cameraZrot)) + (Math.sin(cameraXrot) * Math.sin(cameraZrot)), (Math.cos(cameraXrot) * Math.sin(cameraYrot) * Math.sin(cameraZrot)) - (Math.sin(cameraXrot) * Math.cos(cameraZrot)), Math.cos(cameraXrot) * Math.cos(cameraYrot), 0.0,
-      -cameraX, -cameraY, cameraZ, 1.0];
-    
+      0.0, 0.0, -2.0, 1.0];
+
+    const x1 = Math.cos(cameraYrot) * Math.cos(cameraZrot);
+    const y1 = Math.cos(cameraYrot) * Math.sin(cameraZrot);
+    const z1 = -Math.sin(cameraYrot)
+    const x2 = (Math.sin(cameraXrot) * Math.sin(cameraYrot) * Math.cos(cameraZrot)) - (Math.cos(cameraXrot) * Math.sin(cameraZrot));
+    const y2 = (Math.sin(cameraXrot) * Math.sin(cameraYrot) * Math.sin(cameraZrot)) + (Math.cos(cameraXrot) * Math.cos(cameraZrot));
+    const z2 = Math.sin(cameraXrot) * Math.cos(cameraYrot);
+    const x3 = (Math.cos(cameraXrot) * Math.sin(cameraYrot) * Math.cos(cameraZrot)) + (Math.sin(cameraXrot) * Math.sin(cameraZrot));
+    const y3 = (Math.cos(cameraXrot) * Math.sin(cameraYrot) * Math.sin(cameraZrot)) - (Math.sin(cameraXrot) * Math.cos(cameraZrot));
+    const z3 = Math.cos(cameraXrot) * Math.cos(cameraYrot);
+
+    const rotationMtrx = [
+      x1, y1, z1, 0.0,
+      x2, y2, z2, 0.0,
+      x3, y3, z3, 0.0,
+      0.0, 0.0, 1.0, 1.0
+    ];
+
+    const transformMtrx = [
+      1.0, 0.0, 0.0, 0.0,
+      0.0, 1.0, 0.0, 0.0,
+      0.0, 0.0, 1.0, 0.0,
+      cameraX, cameraY, cameraZ, 1.0
+    ];
+    view = multiplyMatrices(rotationMtrx, transformMtrx);
+
     projection = [ 2/(right-left), 0.0, 0.0, -((right+left)/(right-left)),
                       0.0, 2/(_top-bottom), 0.0, -((_top+bottom)/(_top-bottom)),
                       0.0, 0.0, -2/(far-near), -((far+near)/(far-near)),
-                      0.0, 0.0, 0.0, 1.0]
+                      0.0, 0.0, 0.0, 1.0];
 
 
     uModel = gl.getUniformLocation(shaderProgram, "model");
@@ -375,9 +434,13 @@ function compileShader(id, type) {
     );
   
     gl.drawArrays(gl.TRIANGLES, 0, 36);
-  
-    requestAnimationFrame((currentTime) => {
-      animateScene();
-    });
+
+    setTimeout(() => {
+      requestAnimationFrame((currentTime) => {
+        animateScene();
+      });
+    }, 33);
+
+    
   }
   
