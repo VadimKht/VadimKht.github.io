@@ -10,17 +10,17 @@
     <canvas width="400" height="400" id="canvas">cant do canvas!</canvas>
     <script id="vertex-shader" type="x-shader/x-vertex">
         attribute vec3 aVertexPosition;
-        attribute vec4 aColor;
+        attribute vec2 a_texcoord;
 
         uniform mat4 model;
         uniform mat4 view;
         uniform mat4 projection;
 
-        varying vec4 vColor;
+        varying vec2 v_texcoord;
 
         void main() {
-          vColor = aColor;
           gl_Position = projection * view * model * vec4(aVertexPosition, 1.0);
+          v_texcoord = a_texcoord;
         }
       </script>
 
@@ -29,13 +29,28 @@
           precision highp float;
         #endif
         varying vec4 vColor;
+        varying vec2 v_texcoord;
+
+        uniform sampler2D u_texture;
       
         void main() {
-          gl_FragColor = vColor;
+          gl_FragColor = texture2D(u_texture, v_texcoord);
         }
       </script>
       
     <script type="module" src="index.js"></script>
-    
+    <br>
+    <button id="fwdbtn">forward</button>
+    <button id="bckbtn">back</button>
+    <br>
+    <button id="trnlftbtn">turn left</button>
+    <button id="trnrhtbtn">turn right</button>
+    <br><br>
+
+    <button id="lkpbtn">look up</button>
+    <button id="lkdbtn">look down</button>
+    <br>
+    <button id="strflftbtn">strafe left</button>
+    <button id="strfrhtbtn">strafe right</button>
 </body>
 </html>

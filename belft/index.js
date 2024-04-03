@@ -1,8 +1,6 @@
 import { multiplyMatrices } from "./util.js";
 
-
 window.addEventListener("load", startup, false);
-
 
 let gl = null;
 let glCanvas = null;
@@ -11,16 +9,18 @@ let model;
 let view;
 let projection;
 
+
 // https://www.alanzucconi.com/wp-content/uploads/2016/02/2D_affine_transformation_matrix.svg_.png
 // https://wikimedia.org/api/rest_v1/media/math/render/svg/8ea4e438d7439b8fa504fb53fd7fafd678007243
-const width = 1920;
-const height = 1080;
-const left = -1.0;
-const right = 1.0;
-const _top = 1.0;
-const bottom = -1.0;
+const _fov = 0.6;
+const width = 400;
+const height = 400;
+const left = -_fov;
+const right = _fov;
+const _top = _fov;
+const bottom = -_fov;
 const far = 100.0;
-const near = 0.0;
+const near = 0.1
 let angleX = 0;
 let angleY = 0;
 let angleZ = 0;
@@ -41,6 +41,8 @@ let movingUp = false;
 let movingDown = false;
 let strafingLeft = false;
 let strafingRight = false;
+let xRottingDown = false;
+let xRottingUp = false;
 
 //ortho
 /*let projection = [ 2/(right-left), 0.0, 0.0, -((right+left)/(right-left)),
@@ -64,9 +66,11 @@ let vertexNumComponents;
 let vertexCount;
 
 let colorBuffer;
+let textureBuffer;
 
 let aColor;
 let aVertexPosition;
+let aTex;
 
 let uView;
 let uModel;
@@ -101,11 +105,26 @@ window.addEventListener("keydown", function (event) {
     strafingRight = true;
     return;
   }
+  if(event.key == "1"){
+    xRottingUp = true;
+    return;
+  }
+  if(event.key == "3"){
+    xRottingDown = true;;
+    return;
+  }
   if(event.key == "Shift"){
     speed = runSpeed;
     return;
   }
-  // Cancel the default action to avoid it being handled twice
+  if(event.key == " "){
+    cameraY += 0.1;
+    return;
+  }
+  if(event.key == "c"){
+    cameraY -= 0.1;
+    return;
+  }
 }, true);
 
 window.addEventListener("keyup", function (event) {
@@ -133,6 +152,14 @@ window.addEventListener("keyup", function (event) {
   }
   if(event.key == "e" || event.key == "E"){
     strafingRight = false;
+    return;
+  }
+  if(event.key == "1"){
+    xRottingUp = false;
+    return;
+  }
+  if(event.key == "3"){
+    xRottingDown = false;
     return;
   }
   if(event.key == "Shift"){
@@ -219,45 +246,45 @@ function startup(){
        ]);
 
     vertexArray = new Float32Array([
-        // forward
-        // top
-        -0.5, 0.5, 0.5,
-        0.5, 0.5, 0.5,
-        0.5, -0.5, 0.5,
-        //bottom
-        -0.5, 0.5, 0.5,
-        -0.5, -0.5, 0.5,
-        0.5, -0.5, 0.5,
+      // forward
+      // top
+      -0.5, 0.5, 0.5,
+      0.5, 0.5, 0.5,
+      0.5, -0.5, 0.5,
+      //bottom
+      -0.5, -0.5, 0.5,
+      0.5, -0.5, 0.5,
+      -0.5, 0.5, 0.5,
 
-        // left
-        // top
-        -0.5, 0.5, -0.5,
-        -0.5, 0.5, 0.5,
-        -0.5, -0.5, 0.5,
-        // bottom
-        -0.5, 0.5, -0.5,
-        -0.5, -0.5, -0.5,
-        -0.5, -0.5, 0.5,
+      // left
+      // top
+      -0.5, 0.5, -0.5,
+      -0.5, 0.5, 0.5,
+      -0.5, -0.5, 0.5,
+      // bottom
+      -0.5, 0.5, -0.5,
+      -0.5, -0.5, -0.5,
+      -0.5, -0.5, 0.5,
 
-        // right
-        // top
-        0.5, 0.5, -0.5,
-        0.5, 0.5, 0.5,
-        0.5, -0.5, 0.5,
-        // bottom
-        0.5, 0.5, -0.5,
-        0.5, -0.5, -0.5,
-        0.5, -0.5, 0.5,
+      // right
+      // top
+      0.5, 0.5, -0.5,
+      0.5, 0.5, 0.5,
+      0.5, -0.5, 0.5,
+      // bottom
+      0.5, 0.5, -0.5,
+      0.5, -0.5, -0.5,
+      0.5, -0.5, 0.5,
 
-        // back
-        // top
-        -0.5, 0.5, -0.5,
-        0.5, 0.5, -0.5,
-        0.5, -0.5, -0.5,
-        //bottom
-        -0.5, 0.5, -0.5,
-        -0.5, -0.5, -0.5,
-        0.5, -0.5, -0.5,
+      // back
+      // top
+      -0.5, 0.5, -0.5,
+      0.5, 0.5, -0.5,
+      0.5, -0.5, -0.5,
+      //bottom
+      -0.5, 0.5, -0.5,
+      -0.5, -0.5, -0.5,
+      0.5, -0.5, -0.5,
 
       // up
       // idk
@@ -279,18 +306,140 @@ function startup(){
       0.5, -0.5, -0.5,
 
     ]);
+    const indices = new Uint16Array([
+      // forward
+      0, 1, 2,
+      3, 2, 0,
+      // left
+      6, 0, 3,
+      6, 10, 3,
+      // right
+      12, 1, 2,
+      12, 16, 2,
+      // back
+      6, 12, 16,
+      21, 10, 16,
+      // up
+      0, 6, 12,
+      0, 1, 12,
+      // down
+      3, 10, 16,
+      3, 2, 16
+    ])
 
+    const texture = new Float32Array([
+      //front
+      0, 0, 
+      1, 0,
+      1, 1, 
+      
+      0, 1,
+      1, 1, 
+      0, 0,
+
+      //left
+      0, 0, 
+      1, 0,
+      1, 1,
+
+      0, 0,
+      0, 1,
+      1, 1,
+
+      //right
+      0, 0,
+      1, 0,
+      1, 1,
+      // its not aligning  my calculations but i want cube to look OKAY today 
+      0, 0,
+      0, 1,
+      1, 1,
+
+      // back
+      1, 0,
+      0, 0,
+      0, 1,
+      
+      0, 0,
+      0, 1,
+      1, 1,
+
+      //up
+      0, 1,
+      0, 0,
+      1, 0,
+      
+      0, 1,
+      1, 1,
+      1, 0,
+
+      //down
+      0, 1,
+      0, 0,
+      1, 0,
+
+      0, 1,
+      1, 1,
+      1, 0
+    ])
     vertexBuffer = gl.createBuffer();
     gl.bindBuffer(gl.ARRAY_BUFFER, vertexBuffer);
     gl.bufferData(gl.ARRAY_BUFFER, vertexArray, gl.STATIC_DRAW);
 
     colorBuffer = gl.createBuffer();
     gl.bindBuffer(gl.ARRAY_BUFFER, colorBuffer);
-    gl.bufferData(gl.ARRAY_BUFFER, colorArray, gl.STATIC_DRAW);
+    gl.bufferData(gl.ARRAY_BUFFER, texture, gl.STATIC_DRAW);
+
+    const indexBuffer = gl.createBuffer();
+    gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, indexBuffer);
+    gl.bufferData(
+      gl.ELEMENT_ARRAY_BUFFER,
+      indices,
+      gl.STATIC_DRAW
+    );
+
+    let tex = gl.createTexture();
+    let texturebmp = new Image();
+
+    texturebmp.src = "texture.bmp";
+    texturebmp.addEventListener("load", function(){
+      gl.bindTexture(gl.TEXTURE_2D, tex);
+      gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA,gl.UNSIGNED_BYTE,
+        texturebmp);
+      gl.generateMipmap(gl.TEXTURE_2D);
+    })
+
     gl.enable(gl.DEPTH_TEST);
     gl.depthFunc(gl.LESS);
+    uModel = gl.getUniformLocation(shaderProgram, "model");
+    uView = gl.getUniformLocation(shaderProgram, "view");
+    uProjection = gl.getUniformLocation(shaderProgram, "projection");
+    aVertexPosition = gl.getAttribLocation(shaderProgram, "aVertexPosition");
+    aColor = gl.getAttribLocation(shaderProgram, "a_texcoord");
 
+    gl.enableVertexAttribArray(aVertexPosition);
+    gl.bindBuffer(gl.ARRAY_BUFFER, vertexBuffer);
+    gl.vertexAttribPointer(
+      aVertexPosition,
+      3,
+      gl.FLOAT,
+      false,
+      0,
+      0,
+    );
+    
 
+    gl.enableVertexAttribArray(aColor);
+    gl.bindBuffer(gl.ARRAY_BUFFER, colorBuffer);
+    gl.vertexAttribPointer(
+      aColor,
+      2,
+      gl.FLOAT,
+      false,
+      0,
+      0,
+    );
+    
 
     animateScene();
 }
@@ -335,18 +484,18 @@ function compileShader(id, type) {
 
   function animateScene() {
     gl.viewport(0, 0, glCanvas.width, glCanvas.height);
-    gl.clearColor(0.8, 0.9, 1.0, 1.0);
+    gl.clearColor(0.0, 1.0, 1.0, 1.0);
     gl.clear(gl.COLOR_BUFFER_BIT);
   
     gl.useProgram(shaderProgram);
 
     if(movingUp){
       cameraZ += speed * Math.cos(cameraYrot);
-      cameraX += -speed * Math.sin(cameraYrot);
+      cameraX += speed * Math.sin(cameraYrot);
     }
     if(movingDown){
       cameraZ += -speed * Math.cos(cameraYrot);
-      cameraX += speed * Math.sin(cameraYrot);
+      cameraX -= speed * Math.sin(cameraYrot);
     }
     if(movingLeft){
       cameraYrot -= speed;
@@ -355,14 +504,19 @@ function compileShader(id, type) {
       cameraYrot += speed;
     }
     if(strafingRight){
-      cameraX += -speed * Math.cos(cameraYrot);
+      cameraX += speed * Math.cos(cameraYrot);
       cameraZ += -speed * Math.sin(cameraYrot);
     }
     if(strafingLeft){
-      cameraX += speed*1.5 * Math.cos(cameraYrot);
+      cameraX += -speed*1.5 * Math.cos(cameraYrot);
       cameraZ += speed*1.5 * Math.sin(cameraYrot);
     }
-
+    if(xRottingUp){
+      cameraXrot += speed;
+    }
+    if(xRottingDown){
+      cameraXrot -= speed;
+    }
 
     model = [Math.cos(angleY) * Math.cos(angleZ), Math.cos(angleY) * Math.sin(angleZ), -Math.sin(angleY), 0.0,
       (Math.sin(angleX) * Math.sin(angleY) * Math.cos(angleZ)) - (Math.cos(angleX) * Math.sin(angleZ)), (Math.sin(angleX) * Math.sin(angleY) * Math.sin(angleZ)) + (Math.cos(angleX) * Math.cos(angleZ)), Math.sin(angleX) * Math.cos(angleY), 0.0,
@@ -379,61 +533,59 @@ function compileShader(id, type) {
     const y3 = (Math.cos(cameraXrot) * Math.sin(cameraYrot) * Math.sin(cameraZrot)) - (Math.sin(cameraXrot) * Math.cos(cameraZrot));
     const z3 = Math.cos(cameraXrot) * Math.cos(cameraYrot);
 
+    const xRotMtrx =[
+      1.0, 0.0, 0.0, 0.0,
+      0.0, Math.cos(cameraXrot), -Math.sin(cameraXrot), 0.0,
+      0.0, Math.sin(cameraXrot), Math.cos(cameraXrot), 0.0,
+      0.0, 0.0, 1.0, 1.0
+    ];
+    const yRotMtrx =[
+      Math.cos(cameraYrot), 0.0, -Math.sin(cameraYrot), 0.0,
+      0.0, 1.0, 0.0, 0.0,
+      Math.sin(cameraYrot), 0.0, Math.cos(cameraYrot), 0.0,
+      0.0, 0.0, 1.0, 1.0
+    ];
+    const zRotMtrx =[
+      Math.cos(cameraZrot), Math.sin(cameraZrot), 0.0, 0.0,
+      -Math.sin(cameraZrot), Math.cos(cameraZrot), 0.0, 0.0,
+      0.0, 0.0, 1.0, 0.0,
+      0.0, 0.0, -1.0, 1.0
+    ];
     const rotationMtrx = [
       x1, y1, z1, 0.0,
       x2, y2, z2, 0.0,
       x3, y3, z3, 0.0,
-      0.0, 0.0, 1.0, 1.0
+      0.0, 0.0, 0.0, 1.0
     ];
 
     const transformMtrx = [
       1.0, 0.0, 0.0, 0.0,
       0.0, 1.0, 0.0, 0.0,
       0.0, 0.0, 1.0, 0.0,
-      cameraX, cameraY, cameraZ, 1.0
+      -cameraX, -cameraY, cameraZ, 1.0
     ];
-    view = multiplyMatrices(rotationMtrx, transformMtrx);
+
+    const zyrot = multiplyMatrices(zRotMtrx, yRotMtrx);;
+    const yztfrot = multiplyMatrices(zyrot, transformMtrx);
+    const ztfxrot = multiplyMatrices(xRotMtrx, yztfrot);
+
+    //view = multiplyMatrices(rotationMtrx, transformMtrx);
+
+    //GOOD LORD THIS TOOK ME A WHILE TO FIGURE OUT
+    view = ztfxrot;
 
     projection = [ 2/(right-left), 0.0, 0.0, -((right+left)/(right-left)),
                       0.0, 2/(_top-bottom), 0.0, -((_top+bottom)/(_top-bottom)),
                       0.0, 0.0, -2/(far-near), -((far+near)/(far-near)),
                       0.0, 0.0, 0.0, 1.0];
-
-
-    uModel = gl.getUniformLocation(shaderProgram, "model");
-    uView = gl.getUniformLocation(shaderProgram, "view");
-    uProjection = gl.getUniformLocation(shaderProgram, "projection");
-    aVertexPosition = gl.getAttribLocation(shaderProgram, "aVertexPosition");
-    aColor = gl.getAttribLocation(shaderProgram, "aColor");
+    
 
     gl.uniformMatrix4fv(uModel, false, model);
     gl.uniformMatrix4fv(uView, false, view);
     gl.uniformMatrix4fv(uProjection,false, projection);
-
-    gl.enableVertexAttribArray(aVertexPosition);
-    gl.bindBuffer(gl.ARRAY_BUFFER, vertexBuffer);
-    gl.vertexAttribPointer(
-      aVertexPosition,
-      3,
-      gl.FLOAT,
-      false,
-      0,
-      0,
-    );
     
-
-    gl.enableVertexAttribArray(aColor);
-    gl.bindBuffer(gl.ARRAY_BUFFER, colorBuffer);
-    gl.vertexAttribPointer(
-      aColor,
-      4,
-      gl.FLOAT,
-      false,
-      0,
-      0,
-    );
-  
     gl.drawArrays(gl.TRIANGLES, 0, 36);
+    //gl.drawElements(gl.TRIANGLES, 6, gl.UNSIGNED_SHORT, 0);
 
     setTimeout(() => {
       requestAnimationFrame((currentTime) => {
@@ -444,3 +596,38 @@ function compileShader(id, type) {
     
   }
   
+document.getElementById("fwdbtn").addEventListener('click', () => {
+  movingUp = !movingUp;
+  movingDown = false;
+})
+document.getElementById("bckbtn").addEventListener('click', () => {
+  movingDown = !movingDown;
+  movingup = false;
+})
+
+document.getElementById("trnlftbtn").addEventListener('click', () => {
+  movingLeft = !movingLeft;
+  movingRight = false;
+})
+document.getElementById("trnrhtbtn").addEventListener('click', () => {
+  movingRight = !movingRight;
+  movingLeft = false;
+})
+
+document.getElementById("lkpbtn").addEventListener('click', () => {
+  xRottingUp = !xRottingUp;
+  xRottingDown = false;
+})
+document.getElementById("lkdbtn").addEventListener('click', () => {
+  xRottingDown = !xRottingDown;
+  xRottingUp = false;
+})
+
+document.getElementById("strflftbtn").addEventListener('click', () => {
+  strafingLeft = !strafingLeft;
+  straingRight = false;
+})
+document.getElementById("strfrhtbtn").addEventListener('click', () => {
+  strafingRight = !strafingRight;
+  strafingLeft = false;
+})
