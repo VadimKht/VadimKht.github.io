@@ -12,7 +12,7 @@ let projection;
 
 // https://www.alanzucconi.com/wp-content/uploads/2016/02/2D_affine_transformation_matrix.svg_.png
 // https://wikimedia.org/api/rest_v1/media/math/render/svg/8ea4e438d7439b8fa504fb53fd7fafd678007243
-const _fov = 0.6;
+const _fov = 0.78;
 const pageWidth = window.innerWidth-20;
 const pageHeight = window.innerHeight-300;
 const width = pageWidth;
@@ -496,14 +496,16 @@ function compileShader(id, type) {
     deltaTime = (timeNext-time)/1000;
     time = timeNext;
 
-    fpsArr.push(1/deltaTime);
+    fpsArr.push(deltaTime);
+
     if(onePass){
       let total = 0;
       for(let i = 0; i < fpsArr.length; i++)
       {
         total += fpsArr[i];
       }
-      avgFPS = total/fpsArr.length;
+
+      avgFPS = 1/(total/fpsArr.length);
       onePass = false;
       fpsArr = [];
     }
@@ -539,12 +541,17 @@ function compileShader(id, type) {
       cameraZ += speed*2 * Math.sin(cameraYrot);
     }
     if(xRottingUp){
-      if(cameraXrot <= 0.5)
-      cameraXrot += speed;
+      if(cameraXrot <= 0.5){
+        cameraXrot += speed;
+        cameraYrot -= speed*Math.sin(cameraZrot);
+      }
     }
     if(xRottingDown){
-      if(cameraXrot >= -0.5)
-      cameraXrot -= speed;
+      if(cameraXrot >= -0.5){
+        cameraXrot -= speed;
+        cameraYrot += speed*Math.sin(cameraZrot);
+      }
+      
     }
 
     model = [Math.cos(angleY) * Math.cos(angleZ), Math.cos(angleY) * Math.sin(angleZ), -Math.sin(angleY), 0.0,
@@ -618,7 +625,8 @@ function compileShader(id, type) {
     //gl.drawElements(gl.TRIANGLES, 6, gl.UNSIGNED_SHORT, 0);
     requestAnimationFrame((currentTime) => {
       animateScene();
-    });
+    })
+
   }
   
 document.getElementById("fwdbtn").addEventListener('click', () => {
