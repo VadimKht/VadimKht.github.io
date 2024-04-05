@@ -13,10 +13,14 @@ let projection;
 // https://www.alanzucconi.com/wp-content/uploads/2016/02/2D_affine_transformation_matrix.svg_.png
 // https://wikimedia.org/api/rest_v1/media/math/render/svg/8ea4e438d7439b8fa504fb53fd7fafd678007243
 const _fov = 0.6;
-const width = 400;
-const height = 400;
-const left = -_fov;
-const right = _fov;
+const pageWidth = window.innerWidth-20;
+const pageHeight = window.innerHeight-300;
+const width = pageWidth;
+const height = pageHeight;
+
+const aspectRatio = width / height;
+const left = -(_fov*aspectRatio);
+const right = (_fov*aspectRatio);
 const _top = _fov;
 const bottom = -_fov;
 const far = 100.0;
@@ -31,9 +35,10 @@ let cameraZ = 0.0;
 let cameraXrot = 0.0;
 let cameraYrot = 0.0;
 let cameraZrot = 0.0;
-let speed = 0.05;
-const runSpeed = 0.12;
-const normalSpeed = 0.05;
+let speed = 1;
+const runSpeed = 2;
+const normalSpeed = 1;
+let isRunning = false
 
 let movingLeft = false;
 let movingRight = false;
@@ -44,14 +49,20 @@ let strafingRight = false;
 let xRottingDown = false;
 let xRottingUp = false;
 
+let fpsElement = document.getElementById("fps");
+
+let time;
+let timeNext;
+let deltaTime;
+let avgFPS = 1;
+let fpsArr = [0, 0];
+let onePass = false;
 //ortho
 /*let projection = [ 2/(right-left), 0.0, 0.0, -((right+left)/(right-left)),
                   0.0, 2/(_top-bottom), 0.0, -((_top+bottom)/(_top-bottom)),
                   0.0, 0.0, -2/(far-near), -((far+near)/(far-near)),
                   0.0, 0.0, 0.0, 1.0]*/
 
-const aspectRatio = 400 / 400;
-const fov = 90;
 // perspective
 /*let projection = [1.0/(aspectRatio * Math.tan(fov/2)), 0.0, 0.0, 0.0,
                   0.0, 1.0/(Math.tan(fov/2)), 0.0, 0.0,
@@ -62,15 +73,11 @@ const fov = 90;
 
 let vertexArray;
 let vertexBuffer;
-let vertexNumComponents;
-let vertexCount;
 
 let colorBuffer;
-let textureBuffer;
 
 let aColor;
 let aVertexPosition;
-let aTex;
 
 let uView;
 let uModel;
@@ -106,15 +113,15 @@ window.addEventListener("keydown", function (event) {
     return;
   }
   if(event.key == "1"){
-    xRottingUp = true;
+    xRottingDown = true;
     return;
   }
   if(event.key == "3"){
-    xRottingDown = true;;
+    xRottingUp = true;
     return;
   }
   if(event.key == "Shift"){
-    speed = runSpeed;
+    isRunning = true;
     return;
   }
   if(event.key == " "){
@@ -155,15 +162,15 @@ window.addEventListener("keyup", function (event) {
     return;
   }
   if(event.key == "1"){
-    xRottingUp = false;
-    return;
-  }
-  if(event.key == "3"){
     xRottingDown = false;
     return;
   }
+  if(event.key == "3"){
+    xRottingUp = false;
+    return;
+  }
   if(event.key == "Shift"){
-    speed = normalSpeed;
+    isRunning = false;
     return;
   }
 }, true);
@@ -171,6 +178,8 @@ window.addEventListener("keyup", function (event) {
 function startup(){
     /** @type {HTMLCanvasElement} */
     glCanvas = document.getElementById("canvas");
+    glCanvas.width = pageWidth;
+    glCanvas.height = pageHeight;
     /** @type {WebGLRenderingContext} */
     gl = canvas.getContext("webgl");
     if(gl == false){
@@ -440,7 +449,7 @@ function startup(){
       0,
     );
     
-
+    time = new Date().getTime();
     animateScene();
 }
 
@@ -483,12 +492,30 @@ function compileShader(id, type) {
   }
 
   function animateScene() {
+    timeNext = new Date().getTime();
+    deltaTime = (timeNext-time)/1000;
+    time = timeNext;
+
+    fpsArr.push(1/deltaTime);
+    if(onePass){
+      let total = 0;
+      for(let i = 0; i < fpsArr.length; i++)
+      {
+        total += fpsArr[i];
+      }
+      avgFPS = total/fpsArr.length;
+      onePass = false;
+      fpsArr = [];
+    }
+
     gl.viewport(0, 0, glCanvas.width, glCanvas.height);
     gl.clearColor(0.0, 1.0, 1.0, 1.0);
     gl.clear(gl.COLOR_BUFFER_BIT);
   
     gl.useProgram(shaderProgram);
-
+    if(isRunning) speed = runSpeed;
+    else speed = normalSpeed;
+    speed *= deltaTime
     if(movingUp){
       cameraZ += speed * Math.cos(cameraYrot);
       cameraX += speed * Math.sin(cameraYrot);
@@ -508,13 +535,15 @@ function compileShader(id, type) {
       cameraZ += -speed * Math.sin(cameraYrot);
     }
     if(strafingLeft){
-      cameraX += -speed*1.5 * Math.cos(cameraYrot);
-      cameraZ += speed*1.5 * Math.sin(cameraYrot);
+      cameraX += -speed*2 * Math.cos(cameraYrot);
+      cameraZ += speed*2 * Math.sin(cameraYrot);
     }
     if(xRottingUp){
+      if(cameraXrot <= 0.5)
       cameraXrot += speed;
     }
     if(xRottingDown){
+      if(cameraXrot >= -0.5)
       cameraXrot -= speed;
     }
 
@@ -566,6 +595,7 @@ function compileShader(id, type) {
     ];
 
     const zyrot = multiplyMatrices(zRotMtrx, yRotMtrx);;
+
     const yztfrot = multiplyMatrices(zyrot, transformMtrx);
     const ztfxrot = multiplyMatrices(xRotMtrx, yztfrot);
 
@@ -586,14 +616,9 @@ function compileShader(id, type) {
     
     gl.drawArrays(gl.TRIANGLES, 0, 36);
     //gl.drawElements(gl.TRIANGLES, 6, gl.UNSIGNED_SHORT, 0);
-
-    setTimeout(() => {
-      requestAnimationFrame((currentTime) => {
-        animateScene();
-      });
-    }, 33);
-
-    
+    requestAnimationFrame((currentTime) => {
+      animateScene();
+    });
   }
   
 document.getElementById("fwdbtn").addEventListener('click', () => {
@@ -631,3 +656,8 @@ document.getElementById("strfrhtbtn").addEventListener('click', () => {
   strafingRight = !strafingRight;
   strafingLeft = false;
 })
+
+setInterval(()=>{
+  fpsElement.textContent = Math.round(avgFPS);
+  onePass = true;
+},200)
