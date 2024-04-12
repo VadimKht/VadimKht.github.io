@@ -12,7 +12,7 @@ let projection;
 
 // https://www.alanzucconi.com/wp-content/uploads/2016/02/2D_affine_transformation_matrix.svg_.png
 // https://wikimedia.org/api/rest_v1/media/math/render/svg/8ea4e438d7439b8fa504fb53fd7fafd678007243
-const _fov = 0.78;
+const _fov = 0.5;
 const pageWidth = window.innerWidth-20;
 const pageHeight = window.innerHeight-300;
 const width = pageWidth;
