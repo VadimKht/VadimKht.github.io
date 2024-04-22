@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Document</title>
+    <title>vadiks2003 github page</title>
     <style>
         body{
             
@@ -15,6 +15,9 @@
             color: #BABABA;
             margin: 0px 10vw;
         }
+        h2{
+            margin: 0px;
+        }
         p{
             margin: 0;
         }
@@ -25,21 +28,72 @@
             text-align: center;
         }
         ul{
-            list-style: square;
+            list-style: none;
             font-size: 0.75em;
             padding-left: 0;
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: space-evenly;
+        }
+        li{
+            width: 30%;
+            border: 6px blue solid;
+            border-radius: 10%;
+            margin-bottom: 40px;
+            padding: 12px;
+            height: 50px;
+            text-align: center;
+            transition: height 0.5s linear;
+        }
+        li:hover{
+            height: 310px;
+        }
+        .description{
+            opacity: 0;
+            position: relative;
+            transition: opacity 0.5s linear 0.5s;
+            height: 100%;
+            padding:auto;
+        }
+        @media(max-width: 1680px){
+            li{
+                font-size: 0.8em;
+                width:40%;
+            }
+        }
+        @media(max-width: 1080px){
+            h2{
+                font-size: 0.5em;
+            }
+        }
+        @media(max-width: 720px){
+            li{
+                width: 100%;
+                font-size: 0.4em;
+            }
+            li:hover{
+                height: 100px;
+            }
         }
     </style>
 </head>
 <body>
-    <p class="centered">Welcome to my github page.</p>
-    <p class="centered">There are few projects here. here is the map of them:</p>
+    <h2 class="centered">Welcome to my github page.</h2>
+    <h2 class="centered">There are few projects here. here is the map of them:</h2>
     <ul>
-        <li><a href="./windows/index.html">Window manager</a>, a code that uses position:absolute and allows you to drag windows in real time. Written in pure javascript</li>
-        <li><a href="./clickergame/index.html">Clicker game</a>, a game where you should click to win, written in javascript</li>
-        <li><a href="./stnextbuild/index.html">next js "export" build</a> basically a build of <a href="https://github.com/vadiks2003/nextjs_test">this</a>, but with backend feature removed. react, redux. It uses useEffect to automatically set starting value to 0 if no prop is given, it uses states, props, conditional rendering, shared state (active/inactive), and this specific version on the github page, has backend file writing feature cut.</li>
-        <li><a href="./React_Cursed/index.html">simple react build</a> react and redux were used for it. built with webpack. simple example of react build. made for learning purposes.</li>
+        <li><a href="./windows/index.html">Window manager</a><p class="description"> code that uses position:absolute and allows you to drag windows in real time. Written in pure javascript </p></li>
+        <li><a href="./clickergame/index.html">Clicker game</a> <p class="description"> game where you should click to win, written in javascript </p></li>
+        <li><a href="./stnextbuild/index.html">next js "export" build</a><p class="description"> basically a build of <a href="https://github.com/vadiks2003/nextjs_test">this</a>, but with backend feature removed. react, redux. has backend file writing feature cut. </p></li>
+        <li><a href="./React_Cursed/index.html">simple react build</a><p class="description"> react and redux were used for it. built with webpack. simple example of react build. made for learning purposes. </p></li>
         <li><a href="./belft/index.html">u</a></li>
     </ul>
+    <script>
+        const LiArr = document.getElementsByTagName("li");
+        const DescrArr = document.getElementsByClassName("description");
+        for(let i = 0; i < LiArr.length; i++){
+            LiArr[i].onmouseover = () => DescrArr[i].style.opacity = "100";
+            LiArr[i].onmouseleave = () => DescrArr[i].style.opacity = "0";
+        }
+    </script>
 </body>
 </html>
