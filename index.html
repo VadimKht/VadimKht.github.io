@@ -43,15 +43,10 @@
             padding: 12px;
             height: 50px;
             text-align: center;
-            transition: height 0.5s linear;
-        }
-        li:hover{
-            height: 310px;
         }
         .description{
-            opacity: 0;
+            display:none;
             position: relative;
-            transition: opacity 0.5s linear 0.5s;
             height: 100%;
             padding:auto;
         }
@@ -81,18 +76,29 @@
     <h2 class="centered">Welcome to my github page.</h2>
     <h2 class="centered">There are few projects here. here is the map of them:</h2>
     <ul>
-        <li><a href="./windows/index.html">Window manager</a><p class="description"> code that uses position:absolute and allows you to drag windows in real time. Written in pure javascript </p></li>
-        <li><a href="./clickergame/index.html">Clicker game</a> <p class="description"> game where you should click to win, written in javascript </p></li>
-        <li><a href="./stnextbuild/index.html">next js "export" build</a><p class="description"> basically a build of <a href="https://github.com/vadiks2003/nextjs_test">this</a>, but with backend feature removed. react, redux. has backend file writing feature cut. </p></li>
-        <li><a href="./React_Cursed/index.html">simple react build</a><p class="description"> react and redux were used for it. built with webpack. simple example of react build. made for learning purposes. </p></li>
-        <li><a href="./belft/index.html">u</a></li>
+        <li><a href="./windows/index.html" class="title">Window manager</a><p class="description"> code that uses position:absolute and allows you to drag windows in real time. Written in pure javascript </p></li>
+        <li><a href="./clickergame/index.html" class="title">Clicker game</a> <p class="description"> game where you should click to win, written in javascript </p></li>
+        <li><a href="./stnextbuild/index.html" class="title">next js "export" build</a><p class="description"> basically a build of <a href="https://github.com/vadiks2003/nextjs_test">this</a>, but with backend feature removed. react, redux. has backend file writing feature cut. </p></li>
+        <li><a href="./React_Cursed/index.html" class="title">simple react build</a><p class="description"> react and redux were used for it. built with webpack. simple example of react build. made for learning purposes. </p></li>
+        <li><a href="./belft/index.html" class="title">u</a></li>
     </ul>
     <script>
-        const LiArr = document.getElementsByTagName("li");
+        const LIHEIGHT = 50;
+        const ItemArr = document.getElementsByTagName("li");
+        const TitleArr = document.getElementsByClassName("title");
         const DescrArr = document.getElementsByClassName("description");
-        for(let i = 0; i < LiArr.length; i++){
-            LiArr[i].onmouseover = () => DescrArr[i].style.opacity = "100";
-            LiArr[i].onmouseleave = () => DescrArr[i].style.opacity = "0";
+        for(let i = 0; i < TitleArr.length; i++){
+            TitleArr[i].onmouseover = () => {
+                DescrArr[i].style.display = "block";
+
+                // if i did this in CSS style, it would apply it to all elements
+                ItemArr[i].style.height = "auto";
+            }
+            TitleArr[i].onmouseleave = () => {
+                DescrArr[i].style.display = "none";
+
+                ItemArr[i].style.height = LIHEIGHT + "px";
+        };
         }
     </script>
 </body>
