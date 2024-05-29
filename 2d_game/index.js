@@ -20,4 +20,9 @@ let KeyPressesObj = {
 RegisterKeys(KeyPressesObj);
 const myGame = new MyGame(canvas, gl, KeyPressesObj);
 myGame.init();
+myGame.AddObject(0.5,0,"CubeRight");
+myGame.AddObject(0,  0.5, "CubeUp" );
+myGame.DeleteObject(0);
+myGame.AddObject(1, 0);
+
 myGame.Draw();
