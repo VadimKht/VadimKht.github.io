@@ -16,7 +16,9 @@ export class MyGame{
     VerticesInScene = 0;
     vertexBuffer;
     vertexArray;
-    lastIndex = 0;
+
+    // this way the objects id get alligned with array id
+    lastIndex = -1;
 
     constructor(canvas, gl, KeyPressesObj){
         this.canvas = canvas;
@@ -40,7 +42,8 @@ export class MyGame{
 
         void main() {
             vec2 position = aVertexPosition + uModel - uView;
-            gl_Position = vec4(position, 0.0, 1.5);
+            mat4 scale = mat4(0.5,0.0,0.0,0.0, 0.0,0.5,0.0,0.0, 0.0,0.0,1.0,0.0, 0.0,0.0,0.0,1.0);
+            gl_Position = scale * vec4(position, 0.0, 1.5);
             v_texcoord = a_texcoord;
         }`
         const fragmentShaderSrc = `
@@ -61,7 +64,7 @@ export class MyGame{
         this.gl.shaderSource(verShader, vertexShaderSrc);
         this.gl.compileShader(verShader);
         if(!this.gl.getShaderParameter(verShader, this.gl.COMPILE_STATUS)){
-            console.log(`error in vertex shader:\n ${gl.getShaderInfoLog(verShader)}`)
+            console.log(`error in vertex shader:\n ${this.gl.getShaderInfoLog(verShader)}`)
         }
 
         this.gl.shaderSource(fragShader, fragmentShaderSrc);
@@ -147,10 +150,13 @@ export class MyGame{
             0,
         );
 
+        // removes transparent objects in texture
         //gl.enable(gl.BLEND)
         //gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
     }
     AddObject(x,y,title){
+        // Object's identifier for DeleteObject that gets returned
+        let id;
         let Pos = [
             0.5+x, 0.5+y,
             -0.5+x, 0.5+y,
@@ -188,6 +194,7 @@ export class MyGame{
             ]);
 
             this.lastIndex += 1;
+            id = this.lastIndex;
         }
         else{
             const id_deoccupied = this.deoccupiedList[this.deoccupiedList.length-1][0];
@@ -199,27 +206,47 @@ export class MyGame{
 
             this.objectlist[id_deoccupied][4] = true;
 
+            id = id_deoccupied;
+
             this.deoccupiedList.pop();
         }
-        console.log(this.objectlist);
 
-        this.Render();
-    
+        this.UpdateBuffers();
+        
+        return id;
+    }
+
+    // actual deletion, wrapped in function for different cases
+    #del(_id){
+        this.deoccupiedList.push([_id, this.objectlist[_id][1]])
+        this.objectlist[_id][4] = false;
+        this.VerticesInScene -= this.objectlist[_id][1];
+        this.UpdateBuffers();
     }
 
     DeleteObject(id){
-        if( id > this.objectlist.length-1){
-            console.log("Trying to remove non existent object")
+        if(id > this.objectlist.length-1){
+            console.log("Trying to remove non existent object with id of ");
             return;
         }
-        this.deoccupiedList.push([id, this.objectlist[id][1]])
-        this.objectlist[id][4] = false;
-        console.log(this.objectlist);
-        this.VerticesInScene -= this.objectlist[id][1];
-        this.Render()
+        if(id < 0){
+            console.log("The ID is below 0, this is not right");
+            return;
+        }
+        if(isNaN(id)){
+            console.log("The argument given is not ID. Deleting by name instead.");
+            for(let i = 0; i < this.objectlist.length; i++){
+                if(this.objectlist[i][5] != id) continue;
+                this.#del(i);
+                return;
+            }
+            return;
+        }
+        this.#del(id);
+        
     }
 
-    Render(){
+    UpdateBuffers(){
         // buffers [index, tex]
         this.HugeChunkOfObjectsToRender = [[],[]];
         let objectCounter = 0;
@@ -237,6 +264,20 @@ export class MyGame{
             objectCounter += 1;
         };
 
+        /*const vertexArray = new Float32Array(this.HugeChunkOfObjectsToRender[0]);
+
+        this.gl.bindBuffer(this.gl.ARRAY_BUFFER, this.vertexBuffer);
+        this.gl.bufferData(this.gl.ARRAY_BUFFER, vertexArray, this.gl.STATIC_DRAW);
+        this.gl.bindBuffer(this.gl.ARRAY_BUFFER, null);
+
+        const texArray = new Float32Array(this.HugeChunkOfObjectsToRender[1]);
+
+        this.gl.bindBuffer(this.gl.ARRAY_BUFFER, this.texBuffer);
+        this.gl.bufferData(this.gl.ARRAY_BUFFER, texArray, this.gl.STATIC_DRAW);
+        this.gl.bindBuffer(this.gl.ARRAY_BUFFER, null);*/
+    }
+
+    BindBufferz(){
         const vertexArray = new Float32Array(this.HugeChunkOfObjectsToRender[0]);
 
         this.gl.bindBuffer(this.gl.ARRAY_BUFFER, this.vertexBuffer);
@@ -249,23 +290,30 @@ export class MyGame{
         this.gl.bufferData(this.gl.ARRAY_BUFFER, texArray, this.gl.STATIC_DRAW);
         this.gl.bindBuffer(this.gl.ARRAY_BUFFER, null);
     }
+    #CameraControlsCheck(deltaTime){
+        if(this.KeyPressesObj.w == 1) this.transform[1] -= this.speed * deltaTime;
+        if(this.KeyPressesObj.s == 1) this.transform[1] += this.speed * deltaTime;
+        if(this.KeyPressesObj.a == 1) this.transform[0] += this.speed * deltaTime;
+        if(this.KeyPressesObj.d == 1) this.transform[0] -= this.speed * deltaTime;
+    }
     Draw(){
         this.time2 = new Date().getTime();
         const deltaTime = (this.time2-this.time1)/1000;
         this.time1 = this.time2;
-        // render
         this.gl.clearColor(0.0, 0.5, 0.5, 1);
         this.gl.clear(this.gl.COLOR_BUFFER_BIT);
         this.gl.viewport(0, 0, canvas.width, canvas.height);
-    
-        /*if(this.KeyPressesObj.w == 1 && this.transform[1] <= 1) this.transform[1] += this.speed * deltaTime;
-        if(this.KeyPressesObj.s == 1 && this.transform[1] >= -1) this.transform[1] -= this.speed * deltaTime;
-        if(this.KeyPressesObj.a == 1 && this.transform[0] >= -1) this.transform[0] -= this.speed * deltaTime;
-        if(this.KeyPressesObj.d == 1 && this.transform[0] <= 1) this.transform[0] += this.speed * deltaTime;*/
+        this.Update();
+        // input for camera
+        this.#CameraControlsCheck(deltaTime);
+
         this.gl.uniform2fv(this.uModel, this.transform);
     
         this.gl.drawArrays(this.gl.TRIANGLES, 0, this.VerticesInScene);
         requestAnimationFrame(this.Draw.bind(this));
+    }
+    Update(){
+
     }
     HandleEvent(){
         this.gl.bindTexture(this.gl.TEXTURE_2D, this.tex);
