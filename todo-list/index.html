@@ -35,6 +35,7 @@
         let infoData = [];
         const lsData = localStorage.getItem("data");
         if(lsData !== "") infoData = JSON.parse(lsData);
+        if(infoData == null) infoData = [];
         RenderDOM();
 
         /*let infoDataBlueprint = [
