@@ -1,0 +1,44 @@
+Average square is {
+    0.5+x, 0.5+y,   top right
+    -0.5+x, 0.5+y,  top left
+    -0.5+x, -0.5+y, bottom left
+    
+    -0.5+x, -0.5+y, bottom left
+    0.5+x, -0.5+y,  bottom right
+    0.5+x, 0.5+y    top right
+}
+now, why did i make it this way........
+no reason i just got confused when i was making it
+
+goes across Y row
+this.objectlist[id][2][11] += vector.y;
+this.objectlist[id][2][9] += vector.y;
+this.objectlist[id][2][7] += vector.y;
+this.objectlist[id][2][5] += vector.y;
+this.objectlist[id][2][3] += vector.y;
+this.objectlist[id][2][1] += vector.y;
+
+goes across X row
+this.objectlist[id][2][10] += vector.x;
+this.objectlist[id][2][8] += vector.x;
+this.objectlist[id][2][6] += vector.x;
+this.objectlist[id][2][4] += vector.x;
+this.objectlist[id][2][2] += vector.x; 
+this.objectlist[id][2][0] += vector.x; 
+
+texture coords start at 0 and y is reversed
+let Tex = [
+    1, 0, top right 
+    0, 0, top left
+    0, 1, bottom left
+
+    0, 1, bottom left
+    1, 1, bottom right
+    1, 0  top right
+];
+
+Finds mouse in x space of the canvas and counts in the camera movement
+((xMouse-rectpos.x-canvas.width/2)/canvas.width*6) * canvas.width / canvas.height 
+
+Finds length between point x and object pos to be used for normalization purposes, but is also useful to just find length
+const v = Math.sqrt(Math.pow(Point.x-objectPos.x, 2) + Math.pow(Point.y-objectPos.y, 2));

@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>todo list</title>
+    <style>
+        .row{
+            display:flex;
+            flex-direction: row;
+        }
+        .info button{
+            height: 50%;
+            position: relative;
+            top:16px;
+        }
+        .info p{
+            margin-right: 12px;
+        }
+
+    </style>
+</head>
+<body>
+    <input id="catText" type="text"> <button onclick="CreateCategory()">Create new category</button><br/>
+    <button onclick="RemoveAllStorage()">Clear whole thing</button>
+    <br>
+    <button onclick="RenderDOM()">manually render dom </button>
+    <br>
+    <input type="text" id="setData"><button onclick="SetSave()">insert data manually</button> <br>
+    <span id="getData"></span><button onclick="GetSave()">get current data </button>
+    <div id="Data"></div>
+    <script>
+        const data = document.getElementById("Data");
+        const categoryText = document.getElementById("catText");
+        let infoData = [];
+        const lsData = localStorage.getItem("data");
+        if(lsData !== "") infoData = JSON.parse(lsData);
+        RenderDOM();
+
+        /*let infoDataBlueprint = [
+            // category object
+            {
+                categoryName: "category name",
+                items: [
+                    // item object
+                    {
+                        isChecked: false,
+                        title: "item",
+                    }
+                ]
+            },
+        ]*/ 
+
+        function RenderDOM()
+        {
+            data.innerHTML = "";
+            for(let i = 0; i < infoData.length; i++)
+            {
+                const categoryEl = document.createElement("div");
+                categoryEl.className = "category";
+                categoryEl.innerHTML = `
+                    <br>
+                    <div class="info row"> 
+                        <p>${infoData[i].categoryName}</p>
+                        <button onClick="RemoveCategory(${i})">remove</button>
+                        ${i == 0 ? "" : `<button onClick="MoveCategoryUp(${i})">↑</button>` }
+                        ${i == infoData.length-1 ? "" : `<button onClick="MoveCategoryDown(${i})">↓</button>`}
+                    </div>
+                    <input type="text" class="input"><button onClick="CreateItem(${i})">create item</button>
+                `;
+
+                for(let k = 0; k < infoData[i].items.length; k++)
+                {
+                    const itemEl = document.createElement("div");
+                    itemEl.className = "item";
+                    itemEl.innerHTML = `
+                        <input type="checkbox" onchange="OnTickChange(this, ${i}, ${k})" ${infoData[i].items[k].isChecked ? "checked" : {}}>
+                        <span>${infoData[i].items[k].title}</span>
+                        ${k == 0 ? "" : `<button onClick="MoveItemUp(${i}, ${k})">↑</button>` }
+                        ${k == infoData[i].items.length-1 ? "" : `<button onClick="MoveItemDown(${i}, ${k})">↓</button>` }
+                        <button onClick="RemoveItem(${i}, ${k})">remove</button>`;
+                    categoryEl.append(itemEl);
+                }
+                data.append(categoryEl);
+            }
+            localStorage.setItem("data", JSON.stringify(infoData));
+        }
+        function SetSave(){
+            const val = document.getElementById("setData").value;
+            try{
+                infoData = JSON.parse(val)
+            }
+            catch(error){
+                try{infoData = JSON.parse(atob(val));}
+                catch(error2){console.log("the value is not an object neither a correct base64 encoded")}
+            }
+            RenderDOM();
+        }
+        function GetSave(){
+            const val = document.getElementById("getData");
+            val.textContent = btoa(localStorage.getItem("data"));
+            navigator.clipboard.writeText(val.textContent);
+        }
+        function RemoveAllStorage(){
+            if(confirm("are you sure you want to delete everything?"))
+            {
+                localStorage.clear();
+                infoData = [];
+                RenderDOM();
+            }
+        }
+        function CreateCategory(){
+            infoData.push({
+                categoryName: categoryText.value,
+                items: []
+            });
+            document.getElementById("catText").value = "";
+            RenderDOM();
+        }
+        function CreateItem(catId, isChecked = false){
+            const title = data.childNodes[catId].childNodes[5].value;
+            infoData[catId].items.push({
+                isChecked: false,
+                title: title,
+            });
+            RenderDOM();
+        }
+        function OnTickChange(element, catid, id)
+        {
+            infoData[catid].items[id].isChecked = element.checked;
+            RenderDOM()
+        }
+        function RemoveCategory(id){
+            infoData.splice(id, 1);
+            RenderDOM();
+        }
+        function RemoveItem(catid, id)
+        {
+            infoData[catid].items.splice(id, 1);
+            RenderDOM();
+        }
+
+        function MoveCategoryUp(id){
+            const tempData = infoData[id-1];
+            infoData[id-1] = infoData[id];
+            infoData[id] = tempData;
+            RenderDOM();
+        }
+        function MoveCategoryDown(id)
+        {
+            const tempData = infoData[id+1];
+            infoData[id+1] = infoData[id];
+            infoData[id] = tempData;
+            RenderDOM();
+        }
+
+        function MoveItemUp(catid, id){
+            const tempData = infoData[catid].items[id-1];
+            infoData[catid].items[id-1] = infoData[catid].items[id];
+            infoData[catid].items[id] = tempData;
+            RenderDOM();
+        }
+        function MoveItemDown(catid, id){
+            const tempData = infoData[catid].items[id+1];
+            infoData[catid].items[id+1] = infoData[catid].items[id];
+            infoData[catid].items[id] = tempData;
+            RenderDOM();
+        }
+    </script>
+</body>
+</html>

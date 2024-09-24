@@ -6,8 +6,12 @@ export class MyGame{
     textureData;
     speed = 5;
     tex;
+    ratio;
 
-    // ObjList - [[id, vertamt, vertArr[], texArr[], isOccupied], [id,vertamt,vertar,texar, etc]]
+    // ObjList - [[id, vertamt, vertArr[], texArr[], isOccupied, position:{x,y}], ]
+    /**
+     * @param {[Number, Number, Array, Array, Boolean, {Number, Number}]} 
+     */
     objectlist = []
     
     // deOccupiedList - [[id in objlist, length], [id in objlist, length] ]
@@ -39,10 +43,12 @@ export class MyGame{
 
         uniform vec2 uModel;
         uniform vec2 uView;
+        uniform float uRatio;
 
         void main() {
             vec2 position = aVertexPosition + uModel - uView;
-            mat4 scale = mat4(0.5,0.0,0.0,0.0, 0.0,0.5,0.0,0.0, 0.0,0.0,1.0,0.0, 0.0,0.0,0.0,1.0);
+
+            mat4 scale = mat4(0.5 * uRatio, 0.0,0.0,0.0, 0.0,0.5,0.0,0.0, 0.0,0.0,1.0,0.0, 0.0,0.0,0.0,1.0);
             gl_Position = scale * vec4(position, 0.0, 1.5);
             v_texcoord = a_texcoord;
         }`
@@ -127,6 +133,7 @@ export class MyGame{
         this.aTexPos = this.gl.getAttribLocation(shaderProgram, "a_texcoord");
         this.uModel = this.gl.getUniformLocation(shaderProgram, "uModel");
         this.uView = this.gl.getUniformLocation(shaderProgram, "uView");
+        this.uRatio = this.gl.getUniformLocation(shaderProgram, "uRatio");
 
         this.gl.enableVertexAttribArray(this.aVertexPos);
         this.gl.bindBuffer(this.gl.ARRAY_BUFFER, this.vertexBuffer);
@@ -162,8 +169,8 @@ export class MyGame{
             -0.5+x, 0.5+y,
             -0.5+x, -0.5+y,
             
-            0.5+x, -0.5+y,
             -0.5+x, -0.5+y,
+            0.5+x, -0.5+y,
             0.5+x, 0.5+y
         ];
         let Tex = [
@@ -171,8 +178,8 @@ export class MyGame{
             0, 0,
             0, 1,
 
-            1, 1,
             0, 1,
+            1, 1,
             1, 0
         ];
         // it is 2 dimensional so i divide by 2 since each is x,y
@@ -190,9 +197,9 @@ export class MyGame{
                                 Pos,              
                                 Tex,
                                 true,             // is occupied
-                                title             // name
+                                title,            // name
             ]);
-
+            this.objectlist[this.lastIndex+1]["position"] = {x,y}
             this.lastIndex += 1;
             id = this.lastIndex;
         }
@@ -224,9 +231,37 @@ export class MyGame{
         this.UpdateBuffers();
     }
 
+    MoveObject(id, vector)
+    {
+        if(id > this.objectlist.length-1){
+            console.log("Trying to move non existent object with id of ", id);
+            return;
+        }
+        if(id < 0){
+            console.log("The ID is below 0, this is not right");
+            return;
+        }
+        this.objectlist[id][2][11] += vector.y;
+        this.objectlist[id][2][9] += vector.y;
+        this.objectlist[id][2][7] += vector.y;
+        this.objectlist[id][2][5] += vector.y;
+        this.objectlist[id][2][3] += vector.y;
+        this.objectlist[id][2][1] += vector.y;
+
+        this.objectlist[id][2][10] += vector.x;
+        this.objectlist[id][2][8] += vector.x;
+        this.objectlist[id][2][6] += vector.x;
+        this.objectlist[id][2][4] += vector.x;
+        this.objectlist[id][2][2] += vector.x;
+        this.objectlist[id][2][0] += vector.x;
+
+        this.objectlist[id].position.x += vector.x;
+        this.objectlist[id].position.y += vector.y;
+    }
+
     DeleteObject(id){
         if(id > this.objectlist.length-1){
-            console.log("Trying to remove non existent object with id of ");
+            console.log("Trying to remove non existent object with id of ", id);
             return;
         }
         if(id < 0){
@@ -308,6 +343,7 @@ export class MyGame{
         this.#CameraControlsCheck(deltaTime);
 
         this.gl.uniform2fv(this.uModel, this.transform);
+        this.gl.uniform1f(this.uRatio, new Float32Array([this.ratio]));
     
         this.gl.drawArrays(this.gl.TRIANGLES, 0, this.VerticesInScene);
         requestAnimationFrame(this.Draw.bind(this));
