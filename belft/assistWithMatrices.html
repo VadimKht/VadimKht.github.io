@@ -1,0 +1,235 @@
+<!--todo: matrix multiplication, better interface, and ability to use variables, ability to do math-->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>multiply matrices</title>
+    <style>
+        .wrapper{
+            max-width: 800px;
+            margin: 0 auto;
+        }
+        p{
+            margin: 0;
+        }
+        .column{
+            display:flex;
+            flex-direction: column;
+        }
+        .row{
+            display:flex;
+            flex-direction: row;
+            justify-content:space-between;
+        }
+        input{
+            width: 50px;
+            margin-bottom: 5px;
+        }
+        .manualType input{
+            width: 175px;
+        }
+        .manualType{
+            margin-bottom: 24px;
+        }
+        .result{
+            margin-top: 25px;
+        }
+        .center{
+            margin-top: 12px;
+            display: flex;
+            justify-content: center;
+        }
+        .click{
+            color:#444444;
+        }
+        .click:hover{
+            color:#D4D4D4;
+        }
+        .click:active{
+            color:#D0A0D0;
+        }
+    </style>
+</head>
+<body>
+    <div class="wrapper">
+        <p>
+            if you don't wnat to manually click, just type that shit here in form of  <span class="click" onclick="setidentitytoinput()">1,0,0,0,  0,1,0,0,  0,0,1,0,  0,0,0,1</span><br/>
+                you can insert any javascript script inside as long as its inside "", so, 1,0,"Math.cos(2)",0 should work. doesn't require that in the literal writing though
+        </p><br/>
+        <div class="row manualType">
+            <div>
+                <input id="1mtxt" type="text">
+                <button id="1msbmt">submit</button>
+            </div>
+            <div>
+                <input id="2mtxt" type="text">
+                <button id="2msbmt">submit</button>
+            </div>
+        </div>
+        <div class="row two_matrices">
+            <div class="column">
+                <div>
+                    <input id="1m1x" type="text">
+                    <input id="1m1y" type="text">
+                    <input id="1m1z" type="text">
+                    <input id="1m1w" type="text">
+                </div>
+                <div>
+                    <input id="1m2x" type="text">
+                    <input id="1m2y" type="text">
+                    <input id="1m2z" type="text">
+                    <input id="1m2w" type="text">
+                </div>
+                <div>
+                    <input id="1m3x" type="text">
+                    <input id="1m3y" type="text">
+                    <input id="1m3z" type="text">
+                    <input id="1m3w" type="text">
+                </div>
+                <div>
+                    <input id="1m4x" type="text">
+                    <input id="1m4y" type="text">
+                    <input id="1m4z" type="text">
+                    <input id="1m4w" type="text">
+                </div>
+            </div>
+            <button class="reverse" onclick="reverseMatrices()"><-></button>
+            <div class="column">
+                <div>
+                    <input id="2m1x" type="text">
+                    <input id="2m1y" type="text">
+                    <input id="2m1z" type="text">
+                    <input id="2m1w" type="text">
+                </div>
+                <div>
+                    <input id="2m2x" type="text">
+                    <input id="2m2y" type="text">
+                    <input id="2m2z" type="text">
+                    <input id="2m2w" type="text">
+                </div>
+                <div>
+                    <input id="2m3x" type="text">
+                    <input id="2m3y" type="text">
+                    <input id="2m3z" type="text">
+                    <input id="2m3w" type="text">
+                </div>
+                <div>
+                    <input id="2m4x" type="text">
+                    <input id="2m4y" type="text">
+                    <input id="2m4z" type="text">
+                    <input id="2m4w" type="text">
+                </div>
+            </div>
+        </div>
+        <div class="center">
+            <button onclick="MultiplyThemValues()">MULTIPLY!</button>
+        </div>
+        <div class="center">
+            <div class="column result">
+                <div>
+                    <input id="3m1x" type="text" disabled>
+                    <input id="3m1y" type="text" disabled>
+                    <input id="3m1z" type="text" disabled>
+                    <input id="3m1w" type="text" disabled>
+                </div>
+                <div>
+                    <input id="3m2x" type="text" disabled>
+                    <input id="3m2y" type="text" disabled>
+                    <input id="3m2z" type="text" disabled>
+                    <input id="3m2w" type="text" disabled>
+                </div>
+                <div>
+                    <input id="3m3x" type="text" disabled>
+                    <input id="3m3y" type="text" disabled>
+                    <input id="3m3z" type="text" disabled>
+                    <input id="3m3w" type="text" disabled>
+                </div>
+                <div>
+                    <input id="3m4x" type="text" disabled>
+                    <input id="3m4y" type="text" disabled>
+                    <input id="3m4z" type="text" disabled>
+                    <input id="3m4w" type="text" disabled>
+                </div>
+            </div>
+        </div>
+        <button id="gtrsltbtn">get result in text</button>
+        <span id="resultText">the result will be here</span>
+    </div>
+    
+    <script>
+        // i hate this
+        const columns = document.getElementsByClassName("column");
+
+        const txfrbt1 = document.getElementById("1mtxt");
+        const cvrtbt1 = document.getElementById("1msbmt");
+        cvrtbt1.onclick = () => SetColumnValues(0, txfrbt1.value);
+
+        const txfrbt2 = document.getElementById("2mtxt");
+        const cvrtbt2 = document.getElementById("2msbmt");
+        cvrtbt2.onclick = () => SetColumnValues(1, txfrbt2.value);
+
+        const gtrsltbt = document.getElementById("gtrsltbtn");
+        const rsltxt = document.getElementById("resultText");
+        gtrsltbt.onclick = ()=>{
+            rsltxt.textContent = GetColumnValues(2);
+        }
+        function SetColumnValues(id, text)
+        {
+            // if it's empty
+            if(text == ",,,,,,,,,,,,,,,") text = `0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0`;
+            const textParsed = JSON.parse(`[${text}]`, (key,value) => eval(value));
+            let l = 0;
+            for(let i = 1; i < 8; i += 2 )
+            {
+                for(let k = 1; k < 8; k += 2)
+                {
+                    if(textParsed[l] == undefined) textParsed[l] = 0;
+                    columns[id].childNodes[i].childNodes[k].value = textParsed[l];
+                    l += 1 ;
+                }
+            }
+        }
+        //SetColumnValues(2, "1,0,0,0,0,1,0,0,0,0,1,0,0,0,0,1");
+        function GetColumnValues(id)
+        {
+            let columnData = [];
+            for(let i = 1; i < 8; i += 2)
+            {
+                for(let k = 1; k < 8; k += 2)
+                {
+                    columnData.push(eval(columns[id].childNodes[i].childNodes[k].value));
+                }
+            }
+            return columnData;
+        }
+
+        function MultiplyThemValues(){
+            let resultMatrix = new Array(16).fill(0);
+            const matrix1 = GetColumnValues(0);
+            const matrix2 = GetColumnValues(1);
+            
+            for(let l = 0; l < 4; l++)
+            {
+                for(let k = 0; k < 4; k++)
+                {
+                    for(let i = 0; i < 4; i++)
+                    {
+                        resultMatrix[(l*4)+k] += matrix1[l*4+i] * matrix2[i*4+k];
+                    }
+                }
+            }
+            SetColumnValues(2, resultMatrix);
+            return resultMatrix;
+        }
+        function reverseMatrices(){
+            const matrixBackup = GetColumnValues(1);
+            SetColumnValues(1, GetColumnValues(0));
+            SetColumnValues(0, matrixBackup);
+        }
+        function setidentitytoinput(){
+            txfrbt2.value = "1,0,0,0, 0,1,0,0, 0,0,1,0, 0,0,0,1";
+        }
+    </script>
+</body>
+</html>

@@ -48,8 +48,12 @@ let strafingLeft = false;
 let strafingRight = false;
 let xRottingDown = false;
 let xRottingUp = false;
+let gettingUp = false;
+let gettingDown = false;
 
 let fpsElement = document.getElementById("fps");
+let inputMatrixElement = document.getElementById("textForModelMatrix");
+let inputMatrixButtonElement = document.getElementById("submitTextMatrixButton");
 
 let time;
 let timeNext;
@@ -57,6 +61,8 @@ let deltaTime;
 let avgFPS = 1;
 let fpsArr = [0, 0];
 let onePass = false;
+
+let inputtext = inputMatrixElement.value;
 //ortho
 /*let projection = [ 2/(right-left), 0.0, 0.0, -((right+left)/(right-left)),
                   0.0, 2/(_top-bottom), 0.0, -((_top+bottom)/(_top-bottom)),
@@ -125,11 +131,11 @@ window.addEventListener("keydown", function (event) {
     return;
   }
   if(event.key == " "){
-    cameraY += 0.1;
+    gettingUp = true;
     return;
   }
   if(event.key == "c"){
-    cameraY -= 0.1;
+    gettingDown = true;
     return;
   }
 }, true);
@@ -171,6 +177,14 @@ window.addEventListener("keyup", function (event) {
   }
   if(event.key == "Shift"){
     isRunning = false;
+    return;
+  }
+  if(event.key == " "){
+    gettingUp = false;
+    return;
+  }
+  if(event.key == "c"){
+    gettingDown = false;
     return;
   }
 }, true);
@@ -541,24 +555,46 @@ function compileShader(id, type) {
       cameraZ += speed*2 * Math.sin(cameraYrot);
     }
     if(xRottingUp){
-      if(cameraXrot <= 0.5){
-        cameraXrot += speed;
-        cameraYrot -= speed*Math.sin(cameraZrot);
-      }
+      cameraXrot += speed;
+      cameraYrot -= speed*Math.sin(cameraZrot);
     }
     if(xRottingDown){
-      if(cameraXrot >= -0.5){
-        cameraXrot -= speed;
-        cameraYrot += speed*Math.sin(cameraZrot);
-      }
-      
+      cameraXrot -= speed;
+      cameraYrot += speed*Math.sin(cameraZrot);
     }
-
-    model = [Math.cos(angleY) * Math.cos(angleZ), Math.cos(angleY) * Math.sin(angleZ), -Math.sin(angleY), 0.0,
+    if(gettingUp){
+      cameraY += speed;
+    }
+    if(gettingDown){
+      cameraY -= speed;
+    }
+    /*model = [Math.cos(angleY) * Math.cos(angleZ), Math.cos(angleY) * Math.sin(angleZ), -Math.sin(angleY), 0.0,
       (Math.sin(angleX) * Math.sin(angleY) * Math.cos(angleZ)) - (Math.cos(angleX) * Math.sin(angleZ)), (Math.sin(angleX) * Math.sin(angleY) * Math.sin(angleZ)) + (Math.cos(angleX) * Math.cos(angleZ)), Math.sin(angleX) * Math.cos(angleY), 0.0,
       (Math.cos(angleX) * Math.sin(angleY) * Math.cos(angleZ)) + (Math.sin(angleX) * Math.sin(angleZ)), (Math.cos(angleX) * Math.sin(angleY) * Math.sin(angleZ)) - (Math.sin(angleX) * Math.cos(angleZ)), Math.cos(angleX) * Math.cos(angleY), 0.0,
-      0.0, 0.0, -2.0, 1.0];
+      0.0, 0.0, -2.0, 1.0];*/
+    
+    inputMatrixButtonElement.onclick = () => {
+      console.log(inputMatrixElement.value);
+      let evaluatedMatrix = JSON.parse(`[${inputMatrixElement.value}]`);
+      let result = "";
+      for(let i = 0; i < evaluatedMatrix.length; i++)
+      {
+        evaluatedMatrix[i] = eval(evaluatedMatrix[i]);
+      }
+      result = JSON.stringify(evaluatedMatrix);
+      console.log(result);
+      inputtext = result;
+    }
+    let iTP;
+    inputtext ? iTP = JSON.parse(inputtext) : iTP = JSON.parse(`[1,0,0,0, 0,1,0,0, 0,0,1,0, 0,0,0,1]`);
+    model = [
+      iTP[0], iTP[1], iTP[2], iTP[3],
+      iTP[4], iTP[5], iTP[6], iTP[7],
+      iTP[8], iTP[9], iTP[10], iTP[2],
+      iTP[12], iTP[13], iTP[14], iTP[15],
+    ]
 
+    // todo: change to quaternions - euler to quaternion and then use as angle
     const x1 = Math.cos(cameraYrot) * Math.cos(cameraZrot);
     const y1 = Math.cos(cameraYrot) * Math.sin(cameraZrot);
     const z1 = -Math.sin(cameraYrot)
