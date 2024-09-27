@@ -53,7 +53,9 @@ let gettingDown = false;
 
 let fpsElement = document.getElementById("fps");
 let inputMatrixElement = document.getElementById("textForModelMatrix");
+let buttonMatrixElement = document.getElementById("buttonForModelMatrix");
 let inputMatrixButtonElement = document.getElementById("submitTextMatrixButton");
+
 
 let time;
 let timeNext;
@@ -188,6 +190,39 @@ window.addEventListener("keyup", function (event) {
     return;
   }
 }, true);
+
+
+buttonMatrixElement.onclick = () =>{
+  const text = inputMatrixElement;
+  const elementWithMatrices = document.getElementsByClassName("matrices")[0];
+  const textParsed = JSON.parse(`[${text.value}]`, (key,value) => eval(value));
+
+  let l = 0;
+  for(let i = 1; i < 8; i += 2 )
+  {
+      for(let k = 1; k < 8; k += 2)
+      {
+          if(textParsed[l] == undefined) textParsed[l] = 0;
+          elementWithMatrices.childNodes[i].childNodes[k].value = textParsed[l];
+          l += 1 ;
+      }
+  }
+}
+
+inputMatrixButtonElement.onclick = () => {
+  const elementWithMatrices = document.getElementsByClassName("matrices")[0];
+  let columnData = [];
+  for(let i = 1; i < 8; i += 2)
+  {
+      for(let k = 1; k < 8; k += 2)
+      {
+          columnData.push(eval(elementWithMatrices.childNodes[i].childNodes[k].value));
+      }
+  }
+  inputtext = JSON.stringify(columnData);
+  console.log(inputtext);
+}
+
 
 function startup(){
     /** @type {HTMLCanvasElement} */
@@ -573,18 +608,6 @@ function compileShader(id, type) {
       (Math.cos(angleX) * Math.sin(angleY) * Math.cos(angleZ)) + (Math.sin(angleX) * Math.sin(angleZ)), (Math.cos(angleX) * Math.sin(angleY) * Math.sin(angleZ)) - (Math.sin(angleX) * Math.cos(angleZ)), Math.cos(angleX) * Math.cos(angleY), 0.0,
       0.0, 0.0, -2.0, 1.0];*/
     
-    inputMatrixButtonElement.onclick = () => {
-      console.log(inputMatrixElement.value);
-      let evaluatedMatrix = JSON.parse(`[${inputMatrixElement.value}]`);
-      let result = "";
-      for(let i = 0; i < evaluatedMatrix.length; i++)
-      {
-        evaluatedMatrix[i] = eval(evaluatedMatrix[i]);
-      }
-      result = JSON.stringify(evaluatedMatrix);
-      console.log(result);
-      inputtext = result;
-    }
     let iTP;
     inputtext ? iTP = JSON.parse(inputtext) : iTP = JSON.parse(`[1,0,0,0, 0,1,0,0, 0,0,1,0, 0,0,0,1]`);
     model = [
