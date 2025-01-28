@@ -1,0 +1,1 @@
+The code is bad and the project is maximally terrible, this exists here just as an idea and for memoritzation. The entire 2d_game project should be remade from scrach with one goal in mind: readability while making it work

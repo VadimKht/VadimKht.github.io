@@ -1,0 +1,38 @@
+#version 300 es
+
+out vec2 v_texcoord;
+
+//posx,      posy,        rot
+//texX,      texY         texIndscale,
+//scaleX,    scaleY,      emptySlot
+uniform mat3 positions[64];
+uniform mat2 ratiomatrix;
+
+
+vec2 Cube[6] = vec2[6](
+    vec2(-0.5, 0.5), vec2(-0.5, -0.5), vec2(0.5, -0.5),
+    vec2(-0.5, 0.5), vec2(0.5, 0.5), vec2(0.5, -0.5)
+);
+float cameraSize = 8.0;
+
+const float atlasWidth = 3.0;
+const float spriteSize = 1.0;
+const float spriteNormalized = spriteSize / atlasWidth;
+
+vec2 TexCoord[6] = vec2[6](
+    vec2(0.0, 0.0), vec2(0.0, spriteNormalized), vec2(spriteNormalized, spriteNormalized),
+    vec2(0.0, 0.0), vec2(spriteNormalized, 0.0), vec2(spriteNormalized, spriteNormalized)
+);
+
+void main(void) {
+    // angles to rads
+    float angle = positions[gl_InstanceID][0][2] * 0.0174533;
+
+    vec2 scaledCube = vec2(Cube[gl_VertexID%6].x * positions[gl_InstanceID][2][0],
+                            Cube[gl_VertexID%6].y * positions[gl_InstanceID][2][1]);
+    vec2 rotatedCube = vec2(scaledCube.x * cos(angle) - scaledCube.y * sin(angle), 
+                            scaledCube.x * sin(angle) + scaledCube.y * cos(angle));
+    gl_Position = vec4(ratiomatrix * (rotatedCube + vec2(positions[gl_InstanceID][0])), 0.0, cameraSize);
+
+    v_texcoord = vec2(TexCoord[gl_VertexID%6]*positions[gl_InstanceID][1][2]+vec2(spriteNormalized*positions[gl_InstanceID][1][0], spriteNormalized*positions[gl_InstanceID][1][1]));
+}

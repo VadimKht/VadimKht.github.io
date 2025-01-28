@@ -8,6 +8,7 @@ export class MyGame{
     tex;
     ratio;
 
+    // am i serious? why not make it an object
     // ObjList - [[id, vertamt, vertArr[], texArr[], isOccupied, position:{x,y}], ]
     /**
      * @param {[Number, Number, Array, Array, Boolean, {Number, Number}]} 
@@ -241,6 +242,7 @@ export class MyGame{
             console.log("The ID is below 0, this is not right");
             return;
         }
+        // this should be done in shader...
         this.objectlist[id][2][11] += vector.y;
         this.objectlist[id][2][9] += vector.y;
         this.objectlist[id][2][7] += vector.y;
@@ -285,6 +287,7 @@ export class MyGame{
         // buffers [index, tex]
         this.HugeChunkOfObjectsToRender = [[],[]];
         let objectCounter = 0;
+        // this is not the memory allocation my app deserves... not each frame...
         // per each object's ...
         for(let i = 0; i < this.objectlist.length; i++){
             // (if object is not occupied (deleted) do nothing for this object)

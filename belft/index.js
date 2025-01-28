@@ -64,7 +64,10 @@ let avgFPS = 1;
 let fpsArr = [0, 0];
 let onePass = false;
 
-let inputtext = inputMatrixElement.value;
+let inputtext = `1,0,0,0,
+                0,1,0,0,
+                0,0,1,0,
+                0,0,0,1`;
 //ortho
 /*let projection = [ 2/(right-left), 0.0, 0.0, -((right+left)/(right-left)),
                   0.0, 2/(_top-bottom), 0.0, -((_top+bottom)/(_top-bottom)),
@@ -586,8 +589,8 @@ function compileShader(id, type) {
       cameraZ += -speed * Math.sin(cameraYrot);
     }
     if(strafingLeft){
-      cameraX += -speed*2 * Math.cos(cameraYrot);
-      cameraZ += speed*2 * Math.sin(cameraYrot);
+      cameraX += -speed * Math.cos(cameraYrot);
+      cameraZ += speed * Math.sin(cameraYrot);
     }
     if(xRottingUp){
       cameraXrot += speed;
@@ -609,7 +612,8 @@ function compileShader(id, type) {
       0.0, 0.0, -2.0, 1.0];*/
     
     let iTP;
-    inputtext ? iTP = JSON.parse(inputtext) : iTP = JSON.parse(`[1,0,0,0, 0,1,0,0, 0,0,1,0, 0,0,0,1]`);
+    console.log(inputtext);
+    inputtext ? iTP = JSON.parse(`[${inputtext}]`) : iTP = JSON.parse(`[1,0,0,0, 0,1,0,0, 0,0,1,0, 0,0,0,1]`);
     model = [
       iTP[0], iTP[1], iTP[2], iTP[3],
       iTP[4], iTP[5], iTP[6], iTP[7],
