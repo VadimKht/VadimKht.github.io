@@ -15,8 +15,10 @@ vec2 Cube[6] = vec2[6](
 );
 float cameraSize = 8.0;
 
-const float atlasWidth = 3.0;
-const float spriteSize = 1.0;
+// i am not sure if i should hardcode it in shader or figure image size manually,
+// but since it's personal project, i dont care
+const float atlasWidth = 800.0;
+const float spriteSize = 200.0;
 const float spriteNormalized = spriteSize / atlasWidth;
 
 vec2 TexCoord[6] = vec2[6](

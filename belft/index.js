@@ -223,7 +223,6 @@ inputMatrixButtonElement.onclick = () => {
       }
   }
   inputtext = JSON.stringify(columnData);
-  console.log(inputtext);
 }
 
 
@@ -612,7 +611,7 @@ function compileShader(id, type) {
       0.0, 0.0, -2.0, 1.0];*/
     
     let iTP;
-    console.log(inputtext);
+
     inputtext ? iTP = JSON.parse(`[${inputtext}]`) : iTP = JSON.parse(`[1,0,0,0, 0,1,0,0, 0,0,1,0, 0,0,0,1]`);
     model = [
       iTP[0], iTP[1], iTP[2], iTP[3],
