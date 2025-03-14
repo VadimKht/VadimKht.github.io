@@ -1,3 +1,7 @@
+// QA:
+// Q: Why is this a separate file
+// A: i don't know, it's just a choice made in hurry that i never used again, for some reason
+
 export let xMouse = 0;
 export let yMouse = 0;
 

@@ -18,6 +18,7 @@ export class Engine{
     uniformData = [];
 
     // literal temporary texture - for now its just yellow checker.
+    // edit: i dont know what it is now because yellow checker is gone
     tex;
 
     Scene = {
@@ -26,7 +27,9 @@ export class Engine{
 
     verticesInScene = 0;
 
-    cameraPosition = [-1,0, 1,1];
+    cameraPosition = [1, 1];
+
+    collisionPositions = [];
 
     constructor(canvas){
         this.#canvas = canvas;
@@ -72,6 +75,25 @@ export class Engine{
 
     }
 
+    CheckCollision(obj1, obj2){
+        if(obj1[2].shape == "circle" || obj2[2].shape == "circle")
+        {
+            const x1 = obj1[1][0];
+            const y1 = obj1[1][1];
+            const x2 = obj2[1][0];
+            const y2 = obj2[1][1];
+            const cathetusX = x2-x1;
+            const cathetusY = y2-y1;
+            const len = Math.sqrt(Math.pow(cathetusX,2)+Math.pow(cathetusY,2));
+            // if distance is small return true
+            if(len <= obj1[2].size/2 + obj2[2].size/2)
+            {
+                return true;
+            } 
+            return false;
+        }
+    }
+    // makes texture itself and binds to texture buffer
     MakeTexture(){
         this.tex = this.#gl.createTexture();
         this.#gl.bindTexture(this.#gl.TEXTURE_2D, this.tex);
@@ -103,7 +125,13 @@ export class Engine{
         const obj = [...position, rotation, 
                     ...texindex, texScale, 
                     ...scale, 0.0];
-        const MetaData = [name, obj]
+        const coliderdata = {
+            shape: "circle",
+            // size depending on X for no reason, subject to change
+            size: scale[0],
+            active: true
+        }
+        const MetaData = [name, obj, coliderdata];
         this.Scene.GameObjects.push(MetaData);
 
         this.uniformData.push(...obj);
@@ -115,8 +143,14 @@ export class Engine{
             alert("addobject with data is not done right");
             return
         }
+        const coliderdata = {
+            shape: "circle",
+            // size depending on X for no reason, subject to change
+            size: data[6],
+            active: true
+        }
         const obj = [...data];
-        const MetaData = [name, obj]
+        const MetaData = [name, obj, coliderdata]
         this.Scene.GameObjects.push(MetaData);
 
         this.uniformData.push(...obj);
@@ -130,13 +164,14 @@ export class Engine{
         }
         return results; 
     }
-    ChangeCurrentTexture(rawImageData)
+    ChangeCurrentTexture(rawImageData, width, spritesize)
     {
         //??
         this.#gl.bindTexture(this.#gl.TEXTURE_2D, this.tex);
         this.#gl.texImage2D(this.#gl.TEXTURE_2D, 0, this.#gl.RGBA, this.#gl.RGBA,this.#gl.UNSIGNED_BYTE,
             rawImageData);
         this.#gl.generateMipmap(this.#gl.TEXTURE_2D);
+        this.#gl.uniform1f(this.normalizedSpriteSize, spritesize/width)
     }
 
     // reconsider algo
@@ -180,6 +215,8 @@ export class Engine{
         this.CreateBuffers();
         this.posloc = this.#gl.getUniformLocation(this.shaderProgram, "positions");
         this.canvSizeloc = this.#gl.getUniformLocation(this.shaderProgram, "ratiomatrix");
+        this.cameraPosLoc = this.#gl.getUniformLocation(this.shaderProgram, "cameraPosition");
+        this.normalizedSpriteSize = this.#gl.getUniformLocation(this.shaderProgram, "spriteNormalized")
 
         /*[0.0, 0.0, 0.0,
                                           0.0, 0.0, 2.0,
@@ -194,7 +231,8 @@ export class Engine{
         if(ratio < 1) matrix = [1/ratio, 0.0, 0.0, 1.0];
         else matrix = [1.0, 0.0, 0.0, ratio];
         this.#gl.uniformMatrix2fv(this.canvSizeloc, false, matrix);
-
+        this.#gl.uniform1f(this.normalizedSpriteSize, 1/3);
+        this.#gl.uniform2fv(this.cameraPosLoc, [0.0, 0.0]);
     }
     Draw()
     {
@@ -212,7 +250,6 @@ export class Engine{
     {
         this.cameraPosition[0] += vector2.x;
         this.cameraPosition[1] += vector2.y;
-        this.#gl.uniformMatrix2fv(this.positionObject, false, this.cameraPosition);
-        //this.#gl.uniform1fv(this.cameraRotationObject, [1.0]);
+        this.#gl.uniform2fv(this.cameraPosLoc, this.cameraPosition);
     }
 }

@@ -7,7 +7,8 @@ out vec2 v_texcoord;
 //scaleX,    scaleY,      emptySlot
 uniform mat3 positions[64];
 uniform mat2 ratiomatrix;
-
+uniform vec2 cameraPosition;
+uniform float spriteNormalized;
 
 vec2 Cube[6] = vec2[6](
     vec2(-0.5, 0.5), vec2(-0.5, -0.5), vec2(0.5, -0.5),
@@ -15,15 +16,10 @@ vec2 Cube[6] = vec2[6](
 );
 float cameraSize = 8.0;
 
-// i am not sure if i should hardcode it in shader or figure image size manually,
-// but since it's personal project, i dont care
-const float atlasWidth = 800.0;
-const float spriteSize = 200.0;
-const float spriteNormalized = spriteSize / atlasWidth;
 
 vec2 TexCoord[6] = vec2[6](
-    vec2(0.0, 0.0), vec2(0.0, spriteNormalized), vec2(spriteNormalized, spriteNormalized),
-    vec2(0.0, 0.0), vec2(spriteNormalized, 0.0), vec2(spriteNormalized, spriteNormalized)
+    vec2(0.0, 0.0), vec2(0.0, 1.0), vec2(1.0, 1.0),
+    vec2(0.0, 0.0), vec2(1.0, 0.0), vec2(1.0, 1.0)
 );
 
 void main(void) {
@@ -34,7 +30,7 @@ void main(void) {
                             Cube[gl_VertexID%6].y * positions[gl_InstanceID][2][1]);
     vec2 rotatedCube = vec2(scaledCube.x * cos(angle) - scaledCube.y * sin(angle), 
                             scaledCube.x * sin(angle) + scaledCube.y * cos(angle));
-    gl_Position = vec4(ratiomatrix * (rotatedCube + vec2(positions[gl_InstanceID][0])), 0.0, cameraSize);
+    gl_Position = vec4(ratiomatrix * (rotatedCube + vec2(positions[gl_InstanceID][0])) - cameraPosition, 0.0, cameraSize);
 
-    v_texcoord = vec2(TexCoord[gl_VertexID%6]*positions[gl_InstanceID][1][2]+vec2(spriteNormalized*positions[gl_InstanceID][1][0], spriteNormalized*positions[gl_InstanceID][1][1]));
+    v_texcoord = vec2(TexCoord[gl_VertexID%6]*spriteNormalized*positions[gl_InstanceID][1][2]+vec2(spriteNormalized*positions[gl_InstanceID][1][0], spriteNormalized*positions[gl_InstanceID][1][1]));
 }
