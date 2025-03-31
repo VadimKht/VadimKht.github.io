@@ -222,7 +222,8 @@ inputMatrixButtonElement.onclick = () => {
           columnData.push(eval(elementWithMatrices.childNodes[i].childNodes[k].value));
       }
   }
-  inputtext = JSON.stringify(columnData);
+  const jsonColumnData = JSON.stringify(columnData);
+  inputtext = jsonColumnData.substring(1, jsonColumnData.length-1);
 }
 
 
@@ -612,7 +613,7 @@ function compileShader(id, type) {
     
     let iTP;
 
-    inputtext ? iTP = JSON.parse(`[${inputtext}]`) : iTP = JSON.parse(`[1,0,0,0, 0,1,0,0, 0,0,1,0, 0,0,0,1]`);
+    iTP = JSON.parse(`[${inputtext}]`)
     model = [
       iTP[0], iTP[1], iTP[2], iTP[3],
       iTP[4], iTP[5], iTP[6], iTP[7],
@@ -683,6 +684,9 @@ function compileShader(id, type) {
     gl.uniformMatrix4fv(uView, false, view);
     gl.uniformMatrix4fv(uProjection,false, projection);
     
+    gl.drawArrays(gl.TRIANGLES, 0, 36);
+
+    gl.uniformMatrix4fv(uModel, false, [1,0,0,0, 0,1,0,0, 0,0,1,0 ,2,0,0,1]);
     gl.drawArrays(gl.TRIANGLES, 0, 36);
     //gl.drawElements(gl.TRIANGLES, 6, gl.UNSIGNED_SHORT, 0);
     requestAnimationFrame((currentTime) => {

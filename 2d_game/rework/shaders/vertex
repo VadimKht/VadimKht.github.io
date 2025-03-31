@@ -14,10 +14,10 @@ vec2 Cube[6] = vec2[6](
     vec2(-0.5, 0.5), vec2(-0.5, -0.5), vec2(0.5, -0.5),
     vec2(-0.5, 0.5), vec2(0.5, 0.5), vec2(0.5, -0.5)
 );
-float cameraSize = 8.0;
+const float cameraSize = 8.0;
 
 
-vec2 TexCoord[6] = vec2[6](
+const vec2 TexCoord[6] = vec2[6](
     vec2(0.0, 0.0), vec2(0.0, 1.0), vec2(1.0, 1.0),
     vec2(0.0, 0.0), vec2(1.0, 0.0), vec2(1.0, 1.0)
 );
@@ -30,7 +30,13 @@ void main(void) {
                             Cube[gl_VertexID%6].y * positions[gl_InstanceID][2][1]);
     vec2 rotatedCube = vec2(scaledCube.x * cos(angle) - scaledCube.y * sin(angle), 
                             scaledCube.x * sin(angle) + scaledCube.y * cos(angle));
-    gl_Position = vec4(ratiomatrix * (rotatedCube + vec2(positions[gl_InstanceID][0])) - cameraPosition, 0.0, cameraSize);
+
+    // The original problem was that camera position was incorerctly calculated, causing camera move to be weird by Y axis on bigger/smaller resoutions and weird on X axis on smaller/bigger resolutions
+    // My brain cell asked me: "oh how will i solve this bug?"
+    // Another braincell told me "Lets try this out"
+    // And we tried and tried. and came to this odd conclusion that works. How? nobody knows, only the second braincell.
+    vec2 ratioProperCameraPosition = vec2(cameraPosition.x * ratiomatrix[0].x, cameraPosition.y  * ratiomatrix[1].y);
+    gl_Position = vec4(ratiomatrix * (rotatedCube + vec2(positions[gl_InstanceID][0])) - ratioProperCameraPosition, 0.0, cameraSize);
 
     v_texcoord = vec2(TexCoord[gl_VertexID%6]*spriteNormalized*positions[gl_InstanceID][1][2]+vec2(spriteNormalized*positions[gl_InstanceID][1][0], spriteNormalized*positions[gl_InstanceID][1][1]));
 }

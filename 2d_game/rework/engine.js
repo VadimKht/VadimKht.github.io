@@ -14,8 +14,10 @@ export class Engine{
 
     rectcount = 0;
 
-    // buffer arrays for gl compacted into one array for optimization?
+    // objects data (read shaders/vertex "positions" uniform comment)
     uniformData = [];
+    //  same as uniformData, but UI will be drawn in separate call, so basically data for UI.
+    uniformUIData = [];
 
     // literal temporary texture - for now its just yellow checker.
     // edit: i dont know what it is now because yellow checker is gone
@@ -27,7 +29,7 @@ export class Engine{
 
     verticesInScene = 0;
 
-    cameraPosition = [1, 1];
+    cameraPosition = [0, 0];
 
     collisionPositions = [];
 
@@ -76,12 +78,13 @@ export class Engine{
     }
 
     CheckCollision(obj1, obj2){
+        const x1 = obj1[1][0];
+        const y1 = obj1[1][1];
+        const x2 = obj2[1][0];
+        const y2 = obj2[1][1];
+
         if(obj1[2].shape == "circle" || obj2[2].shape == "circle")
         {
-            const x1 = obj1[1][0];
-            const y1 = obj1[1][1];
-            const x2 = obj2[1][0];
-            const y2 = obj2[1][1];
             const cathetusX = x2-x1;
             const cathetusY = y2-y1;
             const len = Math.sqrt(Math.pow(cathetusX,2)+Math.pow(cathetusY,2));
@@ -90,6 +93,18 @@ export class Engine{
             {
                 return true;
             } 
+            return false;
+        }
+        // incorrect behaivor, to change later. the code may be better than actual circle & circle code above
+        if(obj1[2].shape == "circle" || obj2[2].shape == "rectangle")
+        {
+            const distX = x2-x1;
+            const distY = y2-y1;
+            const distance = Math.sqrt((distX * distX) + (distY*distY));
+            if(distance <= obj1[2].size)
+            {
+                return true;
+            }
             return false;
         }
     }
@@ -119,14 +134,14 @@ export class Engine{
         //this.indexArrayData = [];
     }
 
-    AddObject(name = "Object", position = [0,0], rotation = 0, texindex = [0,0], texScale = 1, scale = [1, 1]
+    AddObject(name = "Object", position = [0,0], rotation = 0, scale = [1, 1], shape="circle", texindex = [0,0], texScale = 1,
     ){
 
         const obj = [...position, rotation, 
                     ...texindex, texScale, 
                     ...scale, 0.0];
         const coliderdata = {
-            shape: "circle",
+            shape: shape,
             // size depending on X for no reason, subject to change
             size: scale[0],
             active: true
@@ -190,9 +205,15 @@ export class Engine{
         this.uniformData.splice(id*9, 9);
 
     }
+    // change object uniformData by index,by specifying id, its index, and data you want to fill
     ChangeData(id, index, data){
         this.uniformData[id*9+index] = data;
         this.Scene.GameObjects[id][1][index] = data;
+    }
+    // in case i ever want to do ChangeData from other script without changing 1 by one?
+    // warning: must consider manually also changing this.Scene.Gameobjects
+    GetIndexOfId(id, index){
+        return id*9+index;
     }
     BindBuffers()
     {
@@ -226,13 +247,15 @@ export class Engine{
                                         1.0, 2.0, 1.0,
                                         2.0, 2.0, 0]*/
         this.#gl.uniformMatrix3fv(this.posloc, false, this.uniformData);
+
+        // ratio things are done for proper calculation with positive and negative w/h ratios
         const ratio = this.#canvas.width/this.#canvas.height;
         let matrix;
         if(ratio < 1) matrix = [1/ratio, 0.0, 0.0, 1.0];
         else matrix = [1.0, 0.0, 0.0, ratio];
         this.#gl.uniformMatrix2fv(this.canvSizeloc, false, matrix);
         this.#gl.uniform1f(this.normalizedSpriteSize, 1/3);
-        this.#gl.uniform2fv(this.cameraPosLoc, [0.0, 0.0]);
+        this.#gl.uniform2fv(this.cameraPosLoc, this.cameraPosition);
     }
     Draw()
     {
@@ -245,6 +268,13 @@ export class Engine{
 
         //this.#gl.drawArraysInstanced(this.#gl.TRIANGLES, 0, 6, this.rectcount);
         this.#gl.drawElementsInstanced(this.#gl.TRIANGLES, 6, this.#gl.UNSIGNED_SHORT, 0, this.rectcount);
+
+        // todo: ui render.
+        // should have font atlas for texture and switch texture before draw
+        // alternativtly, you can change the array to see vertex shaders "positions" uniform data change.
+        // defienition of these numbers is inside shaders/vertex directory (short: pos,rot,texdatasame,scale)
+        this.#gl.uniformMatrix3fv(this.posloc, false, [2,2,0, 1,2,1, 1,1, 0]);
+        this.#gl.drawElementsInstanced(this.#gl.TRIANGLES, 6, this.#gl.UNSIGNED_SHORT, 0, 1);
     }
     move_camera(vector2)
     {

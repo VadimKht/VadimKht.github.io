@@ -9,10 +9,14 @@
       .matrices input{
         width: 60px;
       }
+      p{
+        margin: 0;
+      }
     </style>
 </head>
 <body>
     <canvas width="400" height="400" id="canvas">cant do canvas!</canvas>
+    <!--Attribute - per vertex, uniform - whole program, varying - will go to frag shader, ver vertex probably too-->
     <script id="vertex-shader" type="x-shader/x-vertex">
         attribute vec3 aVertexPosition;
         attribute vec2 a_texcoord;
@@ -46,13 +50,12 @@
     <script type="module" src="index.js"></script>
     <br/>
     <p>your FPS is: <span id="fps">0</span></p>
-    <br/>
     <button id="fwdbtn">forward</button>
     <button id="bckbtn">back</button>
     <br/>
     <button id="trnlftbtn">turn left</button>
     <button id="trnrhtbtn">turn right</button>
-    <br/><br/>
+    <br/>
 
     <button id="lkpbtn">look up</button>
     <button id="lkdbtn">look down</button>
@@ -97,6 +100,5 @@
       </div>
     </div>
     <button id="submitTextMatrixButton">SUBMIT!!!!!</button>
-    <p>bug: submit button just destroys the cube now</p>
 </body>
 </html>
