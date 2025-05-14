@@ -62,6 +62,7 @@ document.ontouchstart = (e) => {
 }
 document.ontouchend = (e) =>{
     // TODO: reset only on certain touches lol
+    // idea: i can have 
     KeysPressed.a = 0; KeysPressed.d = 0;
 }
 engine.AddObject("button", [button1[0]+2, button1[1]+1], 0, [4,2])
