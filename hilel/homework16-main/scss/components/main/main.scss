@@ -1,0 +1,110 @@
+main{
+    margin-bottom: 60px;
+    .container
+    {
+        background-color: $col-grey;
+        padding: 0 80px;
+
+        h2
+        {
+            margin-top: 10px;
+            margin-bottom: 37px;
+        }
+
+        .breadcrumb
+        {
+            padding-top: 11px;
+        }
+        .display_wall
+        {
+            display: inline-block;
+            background-color: white;
+            padding: 16px 110px 25px 16px;
+            border-radius: 40px;
+        }
+
+        .maindisplay{
+            &__navigation
+            {
+                
+            }
+
+            &__search
+            {
+                display: flex;
+                justify-content: center;
+                align-items: center;
+                width: 874px;
+                margin-right: 2px;
+                
+                
+                input{
+                    margin-right: 40px;
+                    background-color: white;
+                    padding-left: 39px;
+                    margin-left: 100px;
+                    border-radius: 40px;
+                    height: 60px;
+
+                }
+            }
+
+            &__content
+            {
+                display: flex;
+                flex-wrap: wrap;
+                flex-direction: row;
+                width: 2000px;
+                
+                &__item
+                {
+                    text-align: center;
+                    border-radius: 20px;
+                    margin-right: 14px;
+                    margin-bottom: 14px;
+                    max-height: 392px;
+                    max-width: 271px;
+                        box-shadow: 0 0 9px -5px;
+                        overflow: hidden;
+                    &:hover
+                    {
+                        transition: 0.3s;
+                        box-shadow: 10px 10px;
+                        
+                    }
+
+                    .tag
+                    {
+                        position: absolute;
+                        top: 10px;
+                        left: 75%;
+                        width: 56px;
+                    }
+
+                    img{
+                        max-width: 282px;
+                        max-height: 290px;
+                        &:hover{
+                            transition: 0.3s;
+                            transform: translateX(-100%);
+                        }
+                    }
+                }
+            }
+
+            &__filters
+            {
+                background-color: white;
+                margin-top: 22px;
+                padding: 10px 50px;
+                border-radius: 40px;
+            }
+
+            &__content
+            {
+                margin-top: 23px;
+                margin-left: 30px;
+            }
+        }
+    }
+}

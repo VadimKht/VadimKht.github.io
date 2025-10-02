@@ -1,0 +1,11 @@
+*
+{
+    font-family: $main-font;
+    font-size: $font-size-md;
+}
+
+.row
+{
+   @extend %flexnwrap;
+   flex-direction: row;
+}

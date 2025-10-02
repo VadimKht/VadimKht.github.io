@@ -42,6 +42,7 @@ function HolderSetEvent(event){
         }
         i++;
     }) 
+    // TODO: add tiling
 }
 
 function ResizeSetEvent(event){

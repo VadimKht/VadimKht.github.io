@@ -38,7 +38,10 @@ document.MoveCamera = (vector2) => {
 let pointerid = 0;
 let button1 = FindPointCentre(0, canvas.height, false);
 let button2 = FindPointCentre(canvas.width, canvas.height, false);
-// temporary
+
+let LetterTexPos = [0,0]
+
+
 document.onmousedown = (e)=>{
     const PointCentre = FindPointCentre(xMouse, yMouse);
     // temporary check for colission to avoid creating object inside buttons
@@ -47,8 +50,14 @@ document.onmousedown = (e)=>{
     if(PointCentre[0] > button2[0] - 4 && PointCentre[0] < button2[0] && 
         PointCentre[1] > button2[1] && PointCentre[1] < button2[1] + 2) return
     
-    engine.AddObject("click pointer" + pointerid, [PointCentre[0], PointCentre[1]], 0, [1,1], "circle")
+    engine.AddObject("click pointer" + pointerid, [PointCentre[0], PointCentre[1]], 0, [1,1], "circle", LetterTexPos)
     pointerid++;
+    LetterTexPos[0] ++;
+    if(LetterTexPos[0] >= 12){
+        LetterTexPos[1] += 1;
+        LetterTexPos[0] = 0;
+    }
+    if(LetterTexPos[1] >= 5) LetterTexPos[1] = 0;
 
     engine.Draw();
 
@@ -82,9 +91,6 @@ document.onkeyup = (e)=>{
     if(e.code == "KeyS")  KeysPressed.s = 0;
     if(e.code == "KeyD")  KeysPressed.d = 0;
 }
-// animation data, not used temporarily?
-let animData = [[1,0], [1,1], [1,2], [1,1]];
-let currentId = 0;
 
 // screen ratio issues
 // bigger bug found: under bigger/smaller resolution the object spawns slightly lower then needed and camera is calculated tihs way too

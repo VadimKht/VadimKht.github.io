@@ -12,6 +12,10 @@ export class Engine{
     indexBuffer;
     textureBuffer;
 
+    atlasTextureBuffer
+    atlasTexture;
+    textTextures = [];
+
     rectcount = 0;
 
     // objects data (read shaders/vertex "positions" uniform comment)
@@ -19,8 +23,6 @@ export class Engine{
     //  same as uniformData, but UI will be drawn in separate call, so basically data for UI.
     uniformUIData = [];
 
-    // literal temporary texture - for now its just yellow checker.
-    // edit: i dont know what it is now because yellow checker is gone
     tex;
 
     Scene = {
@@ -233,11 +235,26 @@ export class Engine{
 
     async Init(){
         await this.#InitShaders();
+
         this.CreateBuffers();
         this.posloc = this.#gl.getUniformLocation(this.shaderProgram, "positions");
         this.canvSizeloc = this.#gl.getUniformLocation(this.shaderProgram, "ratiomatrix");
         this.cameraPosLoc = this.#gl.getUniformLocation(this.shaderProgram, "cameraPosition");
         this.normalizedSpriteSize = this.#gl.getUniformLocation(this.shaderProgram, "spriteNormalized")
+
+        this.atlasTextureBuffer = this.#gl.createTexture();
+        this.atlasTexture = await new Image();
+        this.atlasTexture.onload = ()=>{
+            this.#gl.bindTexture(this.#gl.TEXTURE_2D, this.atlasTextureBuffer);
+            this.#gl.texParameteri(this.#gl.TEXTURE_2D, this.#gl.TEXTURE_WRAP_S, this.#gl.CLAMP_TO_EDGE);
+            this.#gl.texParameteri(this.#gl.TEXTURE_2D, this.#gl.TEXTURE_WRAP_T, this.#gl.CLAMP_TO_EDGE);
+            this.#gl.texParameteri(this.#gl.TEXTURE_2D, this.#gl.TEXTURE_MIN_FILTER, this.#gl.LINEAR);
+            this.#gl.texParameteri(this.#gl.TEXTURE_2D, this.#gl.TEXTURE_MAG_FILTER, this.#gl.LINEAR);
+            this.#gl.texImage2D(this.#gl.TEXTURE_2D, 0, this.#gl.RGBA, this.#gl.RGBA, this.#gl.UNSIGNED_BYTE, this.atlasTexture);
+        };
+        this.atlasTexture.src = "AlphabetTex.png"
+        this.#gl.bindTexture(this.#gl.TEXTURE_2D, this.tex);
+
 
         /*[0.0, 0.0, 0.0,
                                           0.0, 0.0, 2.0,
@@ -254,7 +271,7 @@ export class Engine{
         if(ratio < 1) matrix = [1/ratio, 0.0, 0.0, 1.0];
         else matrix = [1.0, 0.0, 0.0, ratio];
         this.#gl.uniformMatrix2fv(this.canvSizeloc, false, matrix);
-        this.#gl.uniform1f(this.normalizedSpriteSize, 1/3);
+        this.#gl.uniform1f(this.normalizedSpriteSize, 1/12);
         this.#gl.uniform2fv(this.cameraPosLoc, this.cameraPosition);
     }
     Draw()
@@ -273,8 +290,20 @@ export class Engine{
         // should have font atlas for texture and switch texture before draw
         // alternativtly, you can change the array to see vertex shaders "positions" uniform data change.
         // defienition of these numbers is inside shaders/vertex directory (short: pos,rot,texdatasame,scale)
-        this.#gl.uniformMatrix3fv(this.posloc, false, [2,2,0, 1,2,1, 1,1, 0]);
+        this.#gl.uniformMatrix3fv(this.posloc, false, [2,2,0, 0,1,1, 1,1, 0]);
         this.#gl.drawElementsInstanced(this.#gl.TRIANGLES, 6, this.#gl.UNSIGNED_SHORT, 0, 1);
+    }
+
+    // use AlphabetTex.png texture to type text
+    // TODO: 
+    WrieText(text,x=0,y=0,scale=64, maxX=this.#gl.width)
+    {
+        // output text rectangle size
+        const RectXSize = maxX;
+        const RectYSize = Math.ceil(text.length*scale/maxX);
+
+        // New texture 
+        const NewTex = this.#gl.createTexture();
     }
     move_camera(vector2)
     {

@@ -1,0 +1,48 @@
+
+.aboutus{
+    background-color: $selected;
+    max-height: 620px;
+    color: white;
+    &__item
+    {
+        width: 50%;
+        padding-left: 80px;
+        padding-top: 165px;
+        height: 620px;
+        
+        &__button
+        {
+            margin-top: 34px;
+            
+        }
+        h3{
+            font-weight: 800;
+            text-transform: uppercase;
+            font-size: 25px;
+            margin-bottom: 30px;
+        }
+        a{
+            @extend %yellowbutton;
+            text-decoration: none;
+            color: white;
+            text-transform: uppercase;
+            padding: 12px 25px;
+            border: grey .5px solid;
+        }
+        p{
+            margin-right: 266px;
+            max-width: 500px;
+            
+            
+        }
+        
+    }
+    &__img{
+            width: 50%;
+            background-image: url("./../images/left-bg.png"); /* потом сделать норм*/
+            background-repeat: no-repeat;
+            height: 850px;
+            width: 50%;
+
+    }
+}

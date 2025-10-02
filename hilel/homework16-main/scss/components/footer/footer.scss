@@ -1,0 +1,37 @@
+footer{
+    
+    color: white;
+    .footer1{
+        padding: 47px 41px;
+        background-color: #26282C;
+        img{
+            width: 200px;
+            &:first-child{
+            
+            }
+        }
+
+        &__contactdata
+        {
+            max-width: 200px;
+        }
+
+        &__navigation
+        {
+            margin-left: 60px;
+            &__item{
+                margin: 0 32px;
+            }
+        }
+
+        .imgicon
+        {
+            width: 24px;
+        }
+        
+    }
+    .footer2
+    {
+        background-color: #000000;
+    }
+}

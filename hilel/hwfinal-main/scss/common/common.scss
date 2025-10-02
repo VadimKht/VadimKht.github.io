@@ -1,0 +1,38 @@
+body{
+    color: white;
+    font-family: 'Open-Sans', sans-serif;
+}
+
+a{
+    text-decoration: none;
+}
+
+.bluebutton{
+    @extend %bluebutton;
+}
+
+.fadingred
+{
+    @extend %fadingred;
+}
+
+h3{
+    font-weight: 700;
+}
+
+.noShadow
+  {
+      box-shadow: none;
+  }
+
+.whiteHeader{
+    .navigation__firstrow{
+        color: grey;
+    }
+    .navigation__language
+    {
+        a{
+            color: white;
+        }
+    }
+}

@@ -1,0 +1,194 @@
+.contactframe
+{
+    height: 590px;
+    background-color: $contactframe;
+
+    h3{
+        text-transform: uppercase;
+        font-size: $font-size-xxl;
+        color: white;
+    }
+
+    p{
+        font-size: $font-size-md;
+        color:white
+    }
+
+    &__head
+    {
+        padding-top: 100px;
+        padding-bottom: 40px;
+        @extend %flexnwrap;
+        flex-direction: column;
+        align-items: center;
+        
+    }
+
+    .row
+    {
+        justify-content: center;
+    }
+
+    &__input
+    {
+        @extend %flexnwrap;
+        justify-content: center;
+        position: relative;
+        @extend %roundedges;
+
+        &__name
+        {
+            @include image("./../images/user.png");
+        }
+
+        &__email
+        {
+            @include image("./../images/email.png");
+        }
+
+        &__phone
+        {
+            @include image("./../images/phone.png");
+        }
+
+        label{
+            display: inline-block;
+        }
+
+        input
+        {
+            
+            padding-left: 40px;
+            width: 280px;
+            line-height: 50px;
+            display: inline-block;
+            margin: 0 5px;
+            position: relative;
+            
+            
+
+            &.submit{
+                @extend %yellowbutton;
+
+            }
+        }
+    }
+
+    &__imgbuttoncontainer
+    {
+        display: flex;
+        justify-content: center;
+        button{
+            border-radius: 10px;
+            margin: 20px 5px;
+            content: "";
+            background-color: grey;
+            width: 20px;
+            height: 20px;
+            &:focus
+            {
+                background-color: darkblue;
+            }
+        }
+    }
+
+    &__img
+    {
+        @extend %flexnwrap;
+        justify-content: center;
+
+        
+        img{
+            margin-top: 65px;
+            width: 650px;
+            height: 350px;
+        }
+    }
+}
+
+@include huge
+{
+    .contactframe{
+        height: 620px;
+
+        &__img
+        {
+            img{
+                width: 325px;
+                height: 175px;
+                margin-top: 125px;
+            }
+        }
+
+        &__input
+        {
+            .submit{
+                margin-left: 24px;
+            }
+
+            input{
+                width: 288px;
+            }
+
+            label{
+                margin-top: 20px; 
+            }
+        }
+    }
+}
+
+@include big
+{
+    .contactframe
+    {
+        height: 800px;
+        &__head
+        {
+            text-align: center;
+            p{
+                max-width: 500px;
+            }
+        }
+
+        &__input
+        {
+            .submit
+            {
+                margin-left: 132px;
+            }
+
+            label{
+                &::before{
+                    left: 28% !important;
+                }
+            }
+
+            input{
+                max-width: 270px;
+                margin: 0 116px;
+            }
+        }
+    }
+}
+
+
+@include small
+{
+    .contactframe
+    {
+        
+        &__head
+        {
+            p{
+                margin: 0 20px;
+            }
+        }
+
+        &__input
+        {
+            input{
+
+            }
+        }
+    }
+}

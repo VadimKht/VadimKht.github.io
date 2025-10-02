@@ -1,0 +1,37 @@
+.navigation__container .row
+{
+    align-items: center;
+    justify-content: space-around;
+    
+    .navigation
+    {
+        &__item
+        {
+            background-color: white;
+            padding: 10px 20px;
+            max-width: 80px;
+            @extend %btnhover;
+        }
+
+        &__wrapper
+        {
+            padding: 30px 0;
+            background-color: white;
+            display: inline-block;
+            a
+            {
+                text-decoration: none;
+                text-transform: uppercase;
+                color: black;
+            }
+                
+            
+                
+        }  
+
+        &__img
+        {
+            display: inline-block;
+        }
+    }
+}

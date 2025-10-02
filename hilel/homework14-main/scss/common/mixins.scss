@@ -1,0 +1,38 @@
+@mixin image($url) {
+    &::before{
+        background-image: url($url); 
+        @extend %input; 
+    }
+}
+
+@mixin small
+{
+    @media (max-width:$breakpoint_sm)
+    {
+        @content;
+    }
+}
+
+@mixin medium
+{
+    @media (max-width:$breakpoint_md)
+    {
+        @content;
+    }
+}
+
+@mixin big
+{
+    @media (max-width:$breakpoint_xl)
+    {
+        @content;
+    }
+}
+
+@mixin huge
+{
+    @media (max-width:$breakpoint_xxl)
+    {
+        @content;
+    }
+}
