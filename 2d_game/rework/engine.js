@@ -35,6 +35,8 @@ export class Engine{
 
     collisionPositions = [];
 
+    customframebuffer;
+
     constructor(canvas){
         this.#canvas = canvas;
         this.#gl = this.#canvas.getContext("webgl2");
@@ -48,18 +50,27 @@ export class Engine{
     async #InitShaders()
     {
         this.shaderProgram = this.#gl.createProgram();
+        this.textShaderProgram = this.#gl.createProgram();
 
         const verShader = this.#gl.createShader(this.#gl.VERTEX_SHADER);
+        const verTextShader = this.#gl.createShader(this.#gl.VERTEX_SHADER);
         const fragShader = this.#gl.createShader(this.#gl.FRAGMENT_SHADER);
 
         const currentPage = document.URL;
         const vertexShaderSource = await this.#GetFile(`${currentPage}/shaders/vertex`);
+        const vertexTextShaderSource = await this.#GetFile(`${currentPage}/shaders/texturevertex`);
         const fragmentShaderSource = await this.#GetFile(`${currentPage}/shaders/fragment`);
 
         this.#gl.shaderSource(verShader, vertexShaderSource);
         this.#gl.compileShader(verShader);
         if(!this.#gl.getShaderParameter(verShader, this.#gl.COMPILE_STATUS)){
             console.log(`error in vertex shader:\n ${this.#gl.getShaderInfoLog(verShader)}`)
+        }
+
+        this.#gl.shaderSource(verTextShader, vertexTextShaderSource);
+        this.#gl.compileShader(verTextShader);
+        if(!this.#gl.getShaderParameter(verTextShader, this.#gl.COMPILE_STATUS)){
+            console.log(`error in vertex shader:\n ${this.#gl.getShaderInfoLog(verTextShader)}`)
         }
 
         this.#gl.shaderSource(fragShader, fragmentShaderSource);
@@ -75,6 +86,15 @@ export class Engine{
             console.log("Error linking shader program:");
             console.log(this.#gl.getProgramInfoLog(this.shaderProgram));
         }
+
+        this.#gl.attachShader(this.textShaderProgram, verTextShader);
+        this.#gl.attachShader(this.textShaderProgram, fragShader);
+        this.#gl.linkProgram(this.textShaderProgram);
+        if (!this.#gl.getProgramParameter(this.textShaderProgram, this.#gl.LINK_STATUS)) {
+            console.log("Error linking shader program:");
+            console.log(this.#gl.getProgramInfoLog(this.textShaderProgram));
+        }
+
         this.#gl.useProgram(this.shaderProgram);
 
     }
@@ -115,20 +135,20 @@ export class Engine{
         this.tex = this.#gl.createTexture();
         this.#gl.bindTexture(this.#gl.TEXTURE_2D, this.tex);
         this.#gl.texParameteri ( this.#gl.TEXTURE_2D, this.#gl.TEXTURE_MAG_FILTER, this.#gl.NEAREST ) ;
-        this.#gl.texImage2D(this.#gl.TEXTURE_2D, 0, this.#gl.RGBA, 3, 3, 0, this.#gl.RGBA,this.#gl.UNSIGNED_BYTE,
-            new Uint8Array([255, 0, 0, 255,        0, 255, 0, 255,       0, 0, 255, 255,
+        this.#gl.texImage2D(this.#gl.TEXTURE_2D, 0, this.#gl.RGBA, this.#canvas.width, this.#canvas.height, 0, this.#gl.RGBA,this.#gl.UNSIGNED_BYTE,
+            null/*new Uint8Array([255, 0, 0, 255,        0, 255, 0, 255,       0, 0, 255, 255,
                             255, 255, 0, 255,      0, 255, 255, 255,     255, 0, 255, 255,
                             128, 255, 0, 255,      255, 128, 0, 255,     0, 255, 128, 255
-            ]));
-            
-        this.#gl.generateMipmap(this.#gl.TEXTURE_2D);
+            ])*/);
+        this.#gl.texParameteri(this.#gl.TEXTURE_2D, this.#gl.TEXTURE_MIN_FILTER, this.#gl.LINEAR);
+        this.#gl.texParameteri(this.#gl.TEXTURE_2D, this.#gl.TEXTURE_WRAP_S, this.#gl.CLAMP_TO_EDGE);
+        this.#gl.texParameteri(this.#gl.TEXTURE_2D, this.#gl.TEXTURE_WRAP_T, this.#gl.CLAMP_TO_EDGE);
     }
 
     CreateBuffers()
     {
         // index buffer
         this.indexBuffer = this.#gl.createBuffer();
-
         this.MakeTexture();
         
         // reset
@@ -154,6 +174,14 @@ export class Engine{
         this.uniformData.push(...obj);
         return this.Scene.GameObjects.length-1;
     }   
+
+    // temporarily just change current text letter
+    AddText(name = "TextObject", position = [0,0], rotation = 0, scale = [1,1], texindex = [0,0], texScale = 1){
+        this.textData = [...position, rotation, 
+                    ...texindex, texScale, 
+                    ...scale, 0.0];
+    }
+
     AddObjectRaw(name = "Object", data
     ){
         if(data.length != 9){
@@ -189,6 +217,7 @@ export class Engine{
             rawImageData);
         this.#gl.generateMipmap(this.#gl.TEXTURE_2D);
         this.#gl.uniform1f(this.normalizedSpriteSize, spritesize/width)
+        this.#gl.bindTexture(this.#gl.TEXTURE_2D, null);
     }
 
     // reconsider algo
@@ -238,10 +267,11 @@ export class Engine{
 
         this.CreateBuffers();
         this.posloc = this.#gl.getUniformLocation(this.shaderProgram, "positions");
+        this.texposloc = this.#gl.getUniformLocation(this.textShaderProgram, "positions");
         this.canvSizeloc = this.#gl.getUniformLocation(this.shaderProgram, "ratiomatrix");
         this.cameraPosLoc = this.#gl.getUniformLocation(this.shaderProgram, "cameraPosition");
-        this.normalizedSpriteSize = this.#gl.getUniformLocation(this.shaderProgram, "spriteNormalized")
-
+        this.normalizedSpriteSize = this.#gl.getUniformLocation(this.shaderProgram, "spriteNormalized");
+        
         this.atlasTextureBuffer = this.#gl.createTexture();
         this.atlasTexture = await new Image();
         this.atlasTexture.onload = ()=>{
@@ -251,9 +281,10 @@ export class Engine{
             this.#gl.texParameteri(this.#gl.TEXTURE_2D, this.#gl.TEXTURE_MIN_FILTER, this.#gl.LINEAR);
             this.#gl.texParameteri(this.#gl.TEXTURE_2D, this.#gl.TEXTURE_MAG_FILTER, this.#gl.LINEAR);
             this.#gl.texImage2D(this.#gl.TEXTURE_2D, 0, this.#gl.RGBA, this.#gl.RGBA, this.#gl.UNSIGNED_BYTE, this.atlasTexture);
+            this.#gl.bindTexture(this.#gl.TEXTURE_2D, null);
         };
+                
         this.atlasTexture.src = "AlphabetTex.png"
-        this.#gl.bindTexture(this.#gl.TEXTURE_2D, this.tex);
 
 
         /*[0.0, 0.0, 0.0,
@@ -273,25 +304,49 @@ export class Engine{
         this.#gl.uniformMatrix2fv(this.canvSizeloc, false, matrix);
         this.#gl.uniform1f(this.normalizedSpriteSize, 1/12);
         this.#gl.uniform2fv(this.cameraPosLoc, this.cameraPosition);
+
+        // create custom frame buffer and attach this.tex to it, and then bind default framebuffer instead.
+        this.customframebuffer = this.#gl.createFramebuffer();
+        this.#gl.bindFramebuffer(this.#gl.FRAMEBUFFER, this.customframebuffer);
+        this.#gl.framebufferTexture2D(this.#gl.FRAMEBUFFER, this.#gl.COLOR_ATTACHMENT0, this.#gl.TEXTURE_2D, this.tex, 0);
+        this.#gl.clearColor(0, 0, 1, 1); 
+        this.#gl.clear(this.#gl.COLOR_BUFFER_BIT | this.#gl.DEPTH_BUFFER_BIT);
+        this.#gl.bindFramebuffer(this.#gl.FRAMEBUFFER, null);
     }
     Draw()
     {
-        this.#gl.uniformMatrix3fv(this.posloc, false, this.uniformData);
-        this.rectcount = this.Scene.GameObjects.length;
+        // Draw text onto framebuffer (later will be text texture generator) using shader program that doesnt
+        // count in for camera and aspect ratio 
+        this.#gl.useProgram(this.textShaderProgram);
+        this.#gl.bindFramebuffer(this.#gl.FRAMEBUFFER, this.customframebuffer);
+        this.#gl.bindTexture(this.#gl.TEXTURE_2D, this.atlasTextureBuffer);
+        this.#gl.uniformMatrix3fv(this.texposloc, false, this.textData);
+        this.#gl.drawElementsInstanced(this.#gl.TRIANGLES, 6, this.#gl.UNSIGNED_SHORT, 0, this.textData.length/9);
+
         //this.#gl.clearColor(0.0, 0.0, 0.0, 1.0);
         //this.#gl.clear(this.#gl.COLOR_BUFFER_BIT);
-
         //this.#gl.drawArrays(this.#gl.TRIANGLES, 0, 6);
-
         //this.#gl.drawArraysInstanced(this.#gl.TRIANGLES, 0, 6, this.rectcount);
+
+        // Use main shader program and write into main framebuffer
+        this.#gl.useProgram(this.shaderProgram);
+        this.#gl.bindFramebuffer(this.#gl.FRAMEBUFFER, null);
+
+        // render one texture
+        this.#gl.bindTexture(this.#gl.TEXTURE_2D, this.atlasTextureBuffer);
+        this.#gl.uniform1f(this.normalizedSpriteSize, 1/12);
+        this.rectcount = this.Scene.GameObjects.length;
+        this.#gl.uniformMatrix3fv(this.posloc, false, this.uniformData);
         this.#gl.drawElementsInstanced(this.#gl.TRIANGLES, 6, this.#gl.UNSIGNED_SHORT, 0, this.rectcount);
 
-        // todo: ui render.
-        // should have font atlas for texture and switch texture before draw
-        // alternativtly, you can change the array to see vertex shaders "positions" uniform data change.
-        // defienition of these numbers is inside shaders/vertex directory (short: pos,rot,texdatasame,scale)
-        this.#gl.uniformMatrix3fv(this.posloc, false, [2,2,0, 0,1,1, 1,1, 0]);
+        // render framebuffered texture
+        this.#gl.bindTexture(this.#gl.TEXTURE_2D, this.tex);
+        this.#gl.uniform1f(this.normalizedSpriteSize, 1);
+        this.#gl.uniformMatrix3fv(this.posloc, false, [1,0,0,0,0,1,1,1,0]);
         this.#gl.drawElementsInstanced(this.#gl.TRIANGLES, 6, this.#gl.UNSIGNED_SHORT, 0, 1);
+
+        this.#gl.bindTexture(this.#gl.TEXTURE_2D, null);
+        // This manual way of handling textures and shaderprograms on top of that isn't cool
     }
 
     // use AlphabetTex.png texture to type text
@@ -303,7 +358,6 @@ export class Engine{
         const RectYSize = Math.ceil(text.length*scale/maxX);
 
         // New texture 
-        const NewTex = this.#gl.createTexture();
     }
     move_camera(vector2)
     {

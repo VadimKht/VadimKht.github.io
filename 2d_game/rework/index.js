@@ -39,9 +39,8 @@ let pointerid = 0;
 let button1 = FindPointCentre(0, canvas.height, false);
 let button2 = FindPointCentre(canvas.width, canvas.height, false);
 
-let LetterTexPos = [0,0]
-
-
+let LetterTexPos = [1,0]
+engine.AddText("Text my", [0,0], 0, [1,1], [0,0], 1);
 document.onmousedown = (e)=>{
     const PointCentre = FindPointCentre(xMouse, yMouse);
     // temporary check for colission to avoid creating object inside buttons
@@ -50,7 +49,7 @@ document.onmousedown = (e)=>{
     if(PointCentre[0] > button2[0] - 4 && PointCentre[0] < button2[0] && 
         PointCentre[1] > button2[1] && PointCentre[1] < button2[1] + 2) return
     
-    engine.AddObject("click pointer" + pointerid, [PointCentre[0], PointCentre[1]], 0, [1,1], "circle", LetterTexPos)
+    engine.AddText("Text my", [0,0], 0, [1,1], LetterTexPos, 1);
     pointerid++;
     LetterTexPos[0] ++;
     if(LetterTexPos[0] >= 12){
@@ -62,17 +61,31 @@ document.onmousedown = (e)=>{
     engine.Draw();
 
 };
+
+let touchControls = false;
+let touchOrigin = [0,0];
+let touchDragged = [0,0];
 document.ontouchstart = (e) => {
     const PointCentre = FindPointCentre(e.touches[0].pageX, e.touches[0].pageY, false);
-    if(PointCentre[0] > button1[0] && PointCentre[0] < button1[0] + 4 && 
-        PointCentre[1] > button1[1] && PointCentre[1] < button1[1] + 2) KeysPressed.a = 1;
-    if(PointCentre[0] > button2[0] - 4 && PointCentre[0] < button2[0] && 
-        PointCentre[1] > button2[1] && PointCentre[1] < button2[1] + 2) KeysPressed.d = 1;
+    touchControls = true;
+    touchOrigin = PointCentre;
+}
+document.ontouchmove = (e) =>{
+    if(touchControls)
+    {
+        const pointpos = FindPointCentre(e.touches[0].pageX, e.touches[0].pageY, false);
+        touchDragged =  [pointpos[0] - touchOrigin[0], pointpos[1] - touchOrigin[1]];
+        const magnitude = Math.sqrt(Math.pow(touchDragged[0], 2)+Math.pow(touchDragged[1], 2));
+        if(magnitude > characterSpeed * ar)
+        {
+            touchDragged[0] = touchDragged[0]/magnitude;
+            touchDragged[1] = touchDragged[1]/magnitude;
+        }
+    }
 }
 document.ontouchend = (e) =>{
-    // TODO: reset only on certain touches lol
-    // idea: i can have 
-    KeysPressed.a = 0; KeysPressed.d = 0;
+    touchControls = false;
+    touchDragged = [0,0];
 }
 engine.AddObject("button", [button1[0]+2, button1[1]+1], 0, [4,2])
 engine.AddObject("button", [button2[0]-2, button2[1]+1], 0, [4,2])
@@ -121,6 +134,15 @@ function Update()
         engine.ChangeData(0, 2, wtf({x: engine.uniformData[0], y: engine.uniformData[1]}));
         engine.ChangeData(0, 0, engine.uniformData[0] + xAxis * ar * characterSpeed);
         engine.ChangeData(0, 1, engine.uniformData[1] + yAxis * ar * characterSpeed);
+    }
+    if(touchControls)
+    {
+        if(touchDragged[0] != 0 || touchDragged[1] != 0)
+        {
+            engine.ChangeData(0, 0, engine.uniformData[0] + touchDragged[0] * ar * characterSpeed);
+            engine.ChangeData(0, 1, engine.uniformData[1] + touchDragged[1] * ar * characterSpeed);
+            shouldDraw = true;  
+        }
     }
 
     // temporary code for finding colissions, for now finds collisions between player and all objects in scene and deletes
@@ -183,6 +205,7 @@ function FindPointCentre(x,y, CountCamera = true)
 }
 
 let Point = {x: 1.5, y: 1.5};
+// finds rotation from mouse to to objectpos
 function wtf(objectPos)
 {
     const PointCentre = FindPointCentre(xMouse, yMouse);

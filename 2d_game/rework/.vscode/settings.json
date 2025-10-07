@@ -2,6 +2,7 @@
     "files.associations": {
         "*.embeddedhtml": "html",
         ".fantomasignore": "ignore",
-        "vertex": "c"
+        "vertex": "c",
+        "texturevertex": "c"
     }
 }
