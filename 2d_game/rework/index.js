@@ -36,27 +36,13 @@ document.MoveCamera = (vector2) => {
 }
 
 let pointerid = 0;
-let button1 = FindPointCentre(0, canvas.height, false);
-let button2 = FindPointCentre(canvas.width, canvas.height, false);
 
-let LetterTexPos = [1,0]
-engine.AddText("Text my", [0,0], 0, [1,1], [0,0], 1);
+engine.AddText("Text my", "text p\narsing\nis hel\nl its \ndiffic\nult");
+const beginning = "A".charCodeAt();
 document.onmousedown = (e)=>{
-    const PointCentre = FindPointCentre(xMouse, yMouse);
-    // temporary check for colission to avoid creating object inside buttons
-    if(PointCentre[0] > button1[0] && PointCentre[0] < button1[0] + 4 && 
-        PointCentre[1] > button1[1] && PointCentre[1] < button1[1] + 2) return;
-    if(PointCentre[0] > button2[0] - 4 && PointCentre[0] < button2[0] && 
-        PointCentre[1] > button2[1] && PointCentre[1] < button2[1] + 2) return
-    
-    engine.AddText("Text my", [0,0], 0, [1,1], LetterTexPos, 1);
+
+    engine.AddText("Text my", String.fromCharCode(pointerid+beginning));
     pointerid++;
-    LetterTexPos[0] ++;
-    if(LetterTexPos[0] >= 12){
-        LetterTexPos[1] += 1;
-        LetterTexPos[0] = 0;
-    }
-    if(LetterTexPos[1] >= 5) LetterTexPos[1] = 0;
 
     engine.Draw();
 
@@ -87,8 +73,6 @@ document.ontouchend = (e) =>{
     touchControls = false;
     touchDragged = [0,0];
 }
-engine.AddObject("button", [button1[0]+2, button1[1]+1], 0, [4,2])
-engine.AddObject("button", [button2[0]-2, button2[1]+1], 0, [4,2])
 
 let KeysPressed = {"w": 0, "a": 0, "s": 0, "d": 0};
 document.onkeydown = (e)=>{

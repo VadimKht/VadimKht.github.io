@@ -135,7 +135,7 @@ export class Engine{
         this.tex = this.#gl.createTexture();
         this.#gl.bindTexture(this.#gl.TEXTURE_2D, this.tex);
         this.#gl.texParameteri ( this.#gl.TEXTURE_2D, this.#gl.TEXTURE_MAG_FILTER, this.#gl.NEAREST ) ;
-        this.#gl.texImage2D(this.#gl.TEXTURE_2D, 0, this.#gl.RGBA, this.#canvas.width, this.#canvas.height, 0, this.#gl.RGBA,this.#gl.UNSIGNED_BYTE,
+        this.#gl.texImage2D(this.#gl.TEXTURE_2D, 0, this.#gl.RGBA, 800, 400, 0, this.#gl.RGBA,this.#gl.UNSIGNED_BYTE,
             null/*new Uint8Array([255, 0, 0, 255,        0, 255, 0, 255,       0, 0, 255, 255,
                             255, 255, 0, 255,      0, 255, 255, 255,     255, 0, 255, 255,
                             128, 255, 0, 255,      255, 128, 0, 255,     0, 255, 128, 255
@@ -174,12 +174,102 @@ export class Engine{
         this.uniformData.push(...obj);
         return this.Scene.GameObjects.length-1;
     }   
-
+    textToIndex = new Map([
+        ["A",[0,0]],
+        ["B",[1,0]],
+        ["C",[2,0]],
+        ["D",[3,0]],
+        ["E",[4,0]],
+        ["F",[5,0]],
+        ["G",[6,0]],
+        ["H",[7,0]],
+        ["I",[8,0]],
+        ["J",[9,0]],
+        ["K",[10,0]],
+        ["L",[11,0]],
+        ["M",[0,1]],
+        ["N",[1,1]],
+        ["O",[2,1]],
+        ["P",[3,1]],
+        ["Q",[4,1]],
+        ["R",[5,1]],
+        ["S",[6,1]],
+        ["T",[7,1]],
+        ["U",[8,1]],
+        ["V",[9,1]],
+        ["W",[10,1]],
+        ["X",[11,1]],
+        ["Y",[0,2]],
+        ["Z",[1,2]],
+        ["a",[2,2]],
+        ["b",[3,2]],
+        ["c",[4,2]],
+        ["d",[5,2]],
+        ["e",[6,2]],
+        ["f",[7,2]],
+        ["g",[8,2]],
+        ["h",[9,2]],
+        ["i",[10,2]],
+        ["j",[11,2]],
+        ["k",[0,3]],
+        ["l",[1,3]],
+        ["m",[2,3]],
+        ["n",[3,3]],
+        ["o",[4,3]],
+        ["p",[5,3]],
+        ["q",[6,3]],
+        ["r",[7,3]],
+        ["s",[8,3]],
+        ["t",[9,3]],
+        ["u",[10,3]],
+        ["v",[11,3]],
+        ["w",[0,4]],
+        ["x",[1,4]],
+        ["y",[2,4]],
+        ["z",[3,4]],
+        [".",[4,4]],
+        ["!",[5,4]],
+        ["?",[6,4]],
+        ["#",[7,4]],
+        ["$",[8,4]],
+        ["%",[9,4]],
+        ["^",[10,4]],
+        ["&",[11,4]],
+        [" ", [0,5]],
+        ["\n","Down"]
+    ])
     // temporarily just change current text letter
-    AddText(name = "TextObject", position = [0,0], rotation = 0, scale = [1,1], texindex = [0,0], texScale = 1){
-        this.textData = [...position, rotation, 
-                    ...texindex, texScale, 
-                    ...scale, 0.0];
+    AddText(name = "TextObject", letter = "a"){
+        if(letter.length == 1)
+        {
+            let texindex = this.textToIndex.get(letter);
+            if(texindex == undefined) texindex = [11,11];
+            this.textData = [0,0, 0, 
+                        ...texindex, 1, 
+                        1, 1, 0];
+            return;
+        }
+        else if(letter.length > 1)
+        {
+            this.textData = [];
+            let x = -1+(1/6);
+            let y = -0.8;
+            for(let i = 0; i < letter.length; i++)
+            {
+                const curLetter = this.textToIndex.get(letter[i]);
+                if(curLetter == "Down")
+                {
+                    x = -1+(1/6);
+                    y += 0.4;
+                    continue;
+                }
+                this.textData.push(...[x,y,0,
+                                    ...curLetter,1,
+                                    1/6,1/6,0
+                ])
+                x += 2/6;
+            }
+        }
     }
 
     AddObjectRaw(name = "Object", data
@@ -309,8 +399,8 @@ export class Engine{
         this.customframebuffer = this.#gl.createFramebuffer();
         this.#gl.bindFramebuffer(this.#gl.FRAMEBUFFER, this.customframebuffer);
         this.#gl.framebufferTexture2D(this.#gl.FRAMEBUFFER, this.#gl.COLOR_ATTACHMENT0, this.#gl.TEXTURE_2D, this.tex, 0);
-        this.#gl.clearColor(0, 0, 1, 1); 
-        this.#gl.clear(this.#gl.COLOR_BUFFER_BIT | this.#gl.DEPTH_BUFFER_BIT);
+        //this.#gl.clearColor(0, 0, 1, 1); 
+        //this.#gl.clear(this.#gl.COLOR_BUFFER_BIT | this.#gl.DEPTH_BUFFER_BIT);
         this.#gl.bindFramebuffer(this.#gl.FRAMEBUFFER, null);
     }
     Draw()
@@ -319,6 +409,7 @@ export class Engine{
         // count in for camera and aspect ratio 
         this.#gl.useProgram(this.textShaderProgram);
         this.#gl.bindFramebuffer(this.#gl.FRAMEBUFFER, this.customframebuffer);
+        this.#gl.viewport(0,0, 800,400);
         this.#gl.bindTexture(this.#gl.TEXTURE_2D, this.atlasTextureBuffer);
         this.#gl.uniformMatrix3fv(this.texposloc, false, this.textData);
         this.#gl.drawElementsInstanced(this.#gl.TRIANGLES, 6, this.#gl.UNSIGNED_SHORT, 0, this.textData.length/9);
@@ -331,6 +422,7 @@ export class Engine{
         // Use main shader program and write into main framebuffer
         this.#gl.useProgram(this.shaderProgram);
         this.#gl.bindFramebuffer(this.#gl.FRAMEBUFFER, null);
+        this.#gl.viewport(0,0, this.#canvas.width,this.#canvas.height);
 
         // render one texture
         this.#gl.bindTexture(this.#gl.TEXTURE_2D, this.atlasTextureBuffer);
@@ -342,7 +434,7 @@ export class Engine{
         // render framebuffered texture
         this.#gl.bindTexture(this.#gl.TEXTURE_2D, this.tex);
         this.#gl.uniform1f(this.normalizedSpriteSize, 1);
-        this.#gl.uniformMatrix3fv(this.posloc, false, [1,0,0,0,0,1,1,1,0]);
+        this.#gl.uniformMatrix3fv(this.posloc, false, [0,0,0,0,0,1,6,6,0]);
         this.#gl.drawElementsInstanced(this.#gl.TRIANGLES, 6, this.#gl.UNSIGNED_SHORT, 0, 1);
 
         this.#gl.bindTexture(this.#gl.TEXTURE_2D, null);
