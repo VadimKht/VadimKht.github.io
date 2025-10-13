@@ -81,14 +81,14 @@ document.ontouchend = (e) =>{
     touchDragged = [0,0];
 }
 
-let KeysPressed = {"w": 0, "a": 0, "s": 0, "d": 0, "e": 0};
+let KeysPressed = {"w": 0, "a": 0, "s": 0, "d": 0, "e": 0, "esc": 0};
 document.onkeydown = (e)=>{
     if(e.code == "KeyW")  KeysPressed.w = 1;
     if(e.code == "KeyA")  KeysPressed.a = 1;
     if(e.code == "KeyS")  KeysPressed.s = 1;
     if(e.code == "KeyD")  KeysPressed.d = 1;
     if(e.code == "KeyE")  KeysPressed.e = 1;
-
+    if(e.code == "Escape") isRunning = false;
 }
 document.onkeyup = (e)=>{
     if(e.code == "KeyW")  KeysPressed.w = 0;
@@ -142,7 +142,6 @@ function Update()
     // instead of literally just looping through whole array.
     for(let i = 0; i < engine.Scene.GameObjects.length; i++)
     {
-        console.log(engine.Scene.GameObjects[i][0])
         if(engine.Scene.GameObjects[i][0] == "e")
         {
             engine.ChangeData(i, 1, engine.Scene.GameObjects[i][1][1] -= 0.01);
