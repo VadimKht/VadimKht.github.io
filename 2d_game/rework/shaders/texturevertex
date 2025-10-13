@@ -5,7 +5,7 @@ out vec2 v_texcoord;
 //posx,      posy,        rot
 //texX,      texY         texIndscale,
 //scaleX,    scaleY,      emptySlot
-uniform mat3 positions[64];
+uniform mat3 positions[256];
 float spriteNormalized = 1.0/12.0;
 
 vec2 Cube[6] = vec2[6](

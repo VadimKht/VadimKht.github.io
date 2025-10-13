@@ -1,5 +1,6 @@
 import { Engine } from "./engine.js"
 import _handlemouse, {xMouse, yMouse} from "./mousehandler.js";
+import { gameVariables } from "./gamevariables.js";
 
 const canvas = document.getElementById("canvas");
 
@@ -17,6 +18,12 @@ engine.AddObjectRaw("player", [0.0, 0.0, 0.0,
     0.0, 0.0, 1.0,
     1,    1,   0,]);
 _handlemouse();
+const myNPC = engine.AddObject("NPC", [5,0],45, [1,1], "circle", [4,3]);
+const enemyList = [[0,6],[1,6]];
+for(const enemy of enemyList)
+{
+    engine.AddObject("e",[enemy[0], enemy[1]], 0,[1,1],"circle", [6,2]);
+}
 
 // await because we get shader files (file IO) from "server"
 await engine.Init();
@@ -37,11 +44,11 @@ document.MoveCamera = (vector2) => {
 
 let pointerid = 0;
 
-engine.AddText("Text my", "text p\narsing\nis hel\nl its \ndiffic\nult");
+engine.AddText("Text my", "Alorem ipsum something something\ni forgot the text and\nhonestly dont care about\nit as much so i didnt\neven try to find the text onlin\ne", 1/6);
 const beginning = "A".charCodeAt();
 document.onmousedown = (e)=>{
 
-    engine.AddText("Text my", String.fromCharCode(pointerid+beginning));
+    engine.AddText("Text my", String.fromCharCode(pointerid+beginning), 1/6);
     pointerid++;
 
     engine.Draw();
@@ -74,12 +81,13 @@ document.ontouchend = (e) =>{
     touchDragged = [0,0];
 }
 
-let KeysPressed = {"w": 0, "a": 0, "s": 0, "d": 0};
+let KeysPressed = {"w": 0, "a": 0, "s": 0, "d": 0, "e": 0};
 document.onkeydown = (e)=>{
     if(e.code == "KeyW")  KeysPressed.w = 1;
     if(e.code == "KeyA")  KeysPressed.a = 1;
     if(e.code == "KeyS")  KeysPressed.s = 1;
     if(e.code == "KeyD")  KeysPressed.d = 1;
+    if(e.code == "KeyE")  KeysPressed.e = 1;
 
 }
 document.onkeyup = (e)=>{
@@ -87,6 +95,7 @@ document.onkeyup = (e)=>{
     if(e.code == "KeyA")  KeysPressed.a = 0;
     if(e.code == "KeyS")  KeysPressed.s = 0;
     if(e.code == "KeyD")  KeysPressed.d = 0;
+    if(e.code == "KeyE")  KeysPressed.e = 0;
 }
 
 // screen ratio issues
@@ -129,12 +138,42 @@ function Update()
         }
     }
 
-    // temporary code for finding colissions, for now finds collisions between player and all objects in scene and deletes
+    // move all e's down each frame. bad code. should instead reform code to return position of object instead
+    // instead of literally just looping through whole array.
+    for(let i = 0; i < engine.Scene.GameObjects.length; i++)
+    {
+        console.log(engine.Scene.GameObjects[i][0])
+        if(engine.Scene.GameObjects[i][0] == "e")
+        {
+            engine.ChangeData(i, 1, engine.Scene.GameObjects[i][1][1] -= 0.01);
+            shouldDraw = true;
+        }
+    }
+
+    // temporary code for finding colissions, for now finds collisions between player and all objects in scene and deletes by default
+    // and in other cases does interaction or remove on interaction key.
     if(engine.Scene.GameObjects.length > 1)
         for(let i = 1; i < engine.Scene.GameObjects.length; i++)
         {
             if(engine.CheckCollision(engine.Scene.GameObjects[0], engine.Scene.GameObjects[i]))
             {
+                if(engine.Scene.GameObjects[i] == engine.Scene.GameObjects[myNPC])
+                {
+                    if(KeysPressed.e) {
+                        engine.AddText("text", "Hello im npc. Welcome to this\nterrible world. Please\nKill es. I hate them.\nPress e to kill es. dont take too\nlong they kill on long phys interaction..")
+                        shouldDraw = true;
+                    }
+                    continue;
+                }
+                if(engine.Scene.GameObjects[i][0] == "e")
+                {
+                    if(KeysPressed.e)
+                    {
+                        engine.RemoveObject(i);
+                        shouldDraw = true;
+                    }
+                    continue
+                }
                 engine.RemoveObject(i);
             }
         }

@@ -135,7 +135,7 @@ export class Engine{
         this.tex = this.#gl.createTexture();
         this.#gl.bindTexture(this.#gl.TEXTURE_2D, this.tex);
         this.#gl.texParameteri ( this.#gl.TEXTURE_2D, this.#gl.TEXTURE_MAG_FILTER, this.#gl.NEAREST ) ;
-        this.#gl.texImage2D(this.#gl.TEXTURE_2D, 0, this.#gl.RGBA, 800, 400, 0, this.#gl.RGBA,this.#gl.UNSIGNED_BYTE,
+        this.#gl.texImage2D(this.#gl.TEXTURE_2D, 0, this.#gl.RGBA,1024, 256, 0, this.#gl.RGBA,this.#gl.UNSIGNED_BYTE,
             null/*new Uint8Array([255, 0, 0, 255,        0, 255, 0, 255,       0, 0, 255, 255,
                             255, 255, 0, 255,      0, 255, 255, 255,     255, 0, 255, 255,
                             128, 255, 0, 255,      255, 128, 0, 255,     0, 255, 128, 255
@@ -239,14 +239,17 @@ export class Engine{
         ["\n","Down"]
     ])
     // temporarily just change current text letter
-    AddText(name = "TextObject", letter = "a"){
+    // hardcoded size/4, 4 is ratio of texture to not stretch letters
+    // QUESTION: why is singular letter more messed that string of letters?
+    AddText(name = "TextObject", letter = "a", size = 1/6){
         if(letter.length == 1)
         {
             let texindex = this.textToIndex.get(letter);
             if(texindex == undefined) texindex = [11,11];
+
             this.textData = [0,0, 0, 
                         ...texindex, 1, 
-                        1, 1, 0];
+                        size/4, size, 0];
             return;
         }
         else if(letter.length > 1)
@@ -256,7 +259,9 @@ export class Engine{
             let y = -0.8;
             for(let i = 0; i < letter.length; i++)
             {
-                const curLetter = this.textToIndex.get(letter[i]);
+                let curLetter = this.textToIndex.get(letter[i]);
+                if(curLetter == undefined) curLetter = [11,11];
+                // \n
                 if(curLetter == "Down")
                 {
                     x = -1+(1/6);
@@ -265,9 +270,9 @@ export class Engine{
                 }
                 this.textData.push(...[x,y,0,
                                     ...curLetter,1,
-                                    1/6,1/6,0
+                                    size/4,size,0
                 ])
-                x += 2/6;
+                x += 0.05;
             }
         }
     }
@@ -402,6 +407,8 @@ export class Engine{
         //this.#gl.clearColor(0, 0, 1, 1); 
         //this.#gl.clear(this.#gl.COLOR_BUFFER_BIT | this.#gl.DEPTH_BUFFER_BIT);
         this.#gl.bindFramebuffer(this.#gl.FRAMEBUFFER, null);
+        this.#gl.enable(this.#gl.BLEND);
+        this.#gl.blendFunc(this.#gl.SRC_ALPHA, this.#gl.ONE_MINUS_SRC_ALPHA);
     }
     Draw()
     {
@@ -409,8 +416,11 @@ export class Engine{
         // count in for camera and aspect ratio 
         this.#gl.useProgram(this.textShaderProgram);
         this.#gl.bindFramebuffer(this.#gl.FRAMEBUFFER, this.customframebuffer);
-        this.#gl.viewport(0,0, 800,400);
+        this.#gl.viewport(0,0,1024,256);
         this.#gl.bindTexture(this.#gl.TEXTURE_2D, this.atlasTextureBuffer);
+        // Fill with le transparency =)
+        this.#gl.clearColor(0.0, 0.0, 0.0, 0.0);
+        this.#gl.clear(this.#gl.COLOR_BUFFER_BIT);
         this.#gl.uniformMatrix3fv(this.texposloc, false, this.textData);
         this.#gl.drawElementsInstanced(this.#gl.TRIANGLES, 6, this.#gl.UNSIGNED_SHORT, 0, this.textData.length/9);
 
@@ -421,6 +431,7 @@ export class Engine{
 
         // Use main shader program and write into main framebuffer
         this.#gl.useProgram(this.shaderProgram);
+        
         this.#gl.bindFramebuffer(this.#gl.FRAMEBUFFER, null);
         this.#gl.viewport(0,0, this.#canvas.width,this.#canvas.height);
 
@@ -434,7 +445,7 @@ export class Engine{
         // render framebuffered texture
         this.#gl.bindTexture(this.#gl.TEXTURE_2D, this.tex);
         this.#gl.uniform1f(this.normalizedSpriteSize, 1);
-        this.#gl.uniformMatrix3fv(this.posloc, false, [0,0,0,0,0,1,6,6,0]);
+        this.#gl.uniformMatrix3fv(this.posloc, false, [0,-1,0,0,0,1,12,3,0]);
         this.#gl.drawElementsInstanced(this.#gl.TRIANGLES, 6, this.#gl.UNSIGNED_SHORT, 0, 1);
 
         this.#gl.bindTexture(this.#gl.TEXTURE_2D, null);
