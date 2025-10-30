@@ -6,6 +6,8 @@ out vec2 v_texcoord;
 //texX,      texY         texIndscale,
 //scaleX,    scaleY,      emptySlot
 uniform mat3 positions[256];
+
+// hardcoded; 12 is width of texture
 float spriteNormalized = 1.0/12.0;
 
 vec2 Cube[6] = vec2[6](

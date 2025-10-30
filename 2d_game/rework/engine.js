@@ -15,6 +15,13 @@ export class Engine{
     atlasTextureBuffer
     atlasTexture;
     textTextures = [];
+    textPositions = [{
+        name: "HelloworldText",
+        position: [0,0],
+        text: "Hello world.",
+        // uniformdata contains data for all letters
+        uniformdata: []
+    },]
 
     rectcount = 0;
 
@@ -40,7 +47,7 @@ export class Engine{
     constructor(canvas){
         this.#canvas = canvas;
         this.#gl = this.#canvas.getContext("webgl2");
-        if(this.#gl == false) alert("Unable to make webgl context");
+        if(this.#gl == false) alert("Unable to make webgl2 context.");
     }
     async #GetFile(URL)
     {
@@ -131,11 +138,11 @@ export class Engine{
         }
     }
     // makes texture itself and binds to texture buffer
-    MakeTexture(){
-        this.tex = this.#gl.createTexture();
+    MakeTexture(x=512,y=512){
+        this.tex == null ? this.tex = this.#gl.createTexture() : {};
         this.#gl.bindTexture(this.#gl.TEXTURE_2D, this.tex);
         this.#gl.texParameteri ( this.#gl.TEXTURE_2D, this.#gl.TEXTURE_MAG_FILTER, this.#gl.NEAREST ) ;
-        this.#gl.texImage2D(this.#gl.TEXTURE_2D, 0, this.#gl.RGBA,1024, 256, 0, this.#gl.RGBA,this.#gl.UNSIGNED_BYTE,
+        this.#gl.texImage2D(this.#gl.TEXTURE_2D, 0, this.#gl.RGBA,x, y, 0, this.#gl.RGBA,this.#gl.UNSIGNED_BYTE,
             null/*new Uint8Array([255, 0, 0, 255,        0, 255, 0, 255,       0, 0, 255, 255,
                             255, 255, 0, 255,      0, 255, 255, 255,     255, 0, 255, 255,
                             128, 255, 0, 255,      255, 128, 0, 255,     0, 255, 128, 255
@@ -143,6 +150,7 @@ export class Engine{
         this.#gl.texParameteri(this.#gl.TEXTURE_2D, this.#gl.TEXTURE_MIN_FILTER, this.#gl.LINEAR);
         this.#gl.texParameteri(this.#gl.TEXTURE_2D, this.#gl.TEXTURE_WRAP_S, this.#gl.CLAMP_TO_EDGE);
         this.#gl.texParameteri(this.#gl.TEXTURE_2D, this.#gl.TEXTURE_WRAP_T, this.#gl.CLAMP_TO_EDGE);
+        this.#gl.bindTexture(this.#gl.TEXTURE_2D, null);
     }
 
     CreateBuffers()
@@ -239,24 +247,58 @@ export class Engine{
         ["\n","Down"]
     ])
     // temporarily just change current text letter
-    // hardcoded size/4, 4 is ratio of texture to not stretch letters
-    // QUESTION: why is singular letter more messed that string of letters?
-    AddText(name = "TextObject", letter = "a", size = 1/6){
+    SetText(x,y, letter = "a", size = 1){
         if(letter.length == 1)
         {
             let texindex = this.textToIndex.get(letter);
             if(texindex == undefined) texindex = [11,11];
 
+            this.MakeTexture(256,256);
             this.textData = [0,0, 0, 
                         ...texindex, 1, 
-                        size/4, size, 0];
+                        size, size, 0];
+            this.textPositions[0] = {
+                name: "Helloworld",
+                position: [x,y],
+                text: letter,
+                size: [256,256],
+                ratio: [1,1],
+                uniformdata: this.textData
+            }
             return;
         }
         else if(letter.length > 1)
         {
+            // Biggest line is width of the whole text, new lines is height of whole text.
+            const ParseData = {
+                newLines: 0,
+                biggestLine: 0,
+                currentLineSize: 0
+            }
+            for(let i = 0; i < letter.length; i++)
+            {
+                const curLetter = letter[i];
+                if(curLetter == "\n" || i == letter.length-1)
+                {
+                    ParseData.newLines += 1;
+                    letter.length == i ? ParseData.currentLineSize += 1 : {};
+                    if(ParseData.currentLineSize > ParseData.biggestLine)
+                        ParseData.biggestLine = ParseData.currentLineSize;
+                    ParseData.currentLineSize = 0;
+                    continue;
+                }
+                ParseData.currentLineSize += 1;
+            }
+        
             this.textData = [];
-            let x = -1+(1/6);
-            let y = -0.8;
+            let xLet = -1;
+            // for some reason if i set 0 with new lines the bottom part will half-disappepar,
+            // however if i set -0.5 it will work fine but without new lines, the text is slightly towards the top...
+            // similar thing occurs to X for some reason
+            let yLet = ParseData.newLines <= 1 ? 0 : -0.5;
+
+            const SizeTotal=[ParseData.biggestLine*256, ParseData.newLines*256]
+            this.MakeTexture(SizeTotal[0], SizeTotal[1]);
             for(let i = 0; i < letter.length; i++)
             {
                 let curLetter = this.textToIndex.get(letter[i]);
@@ -264,15 +306,23 @@ export class Engine{
                 // \n
                 if(curLetter == "Down")
                 {
-                    x = -1+(1/6);
-                    y += 0.4;
+                    xLet = -1;
+                    yLet += 1/(ParseData.newLines)*2;
                     continue;
                 }
-                this.textData.push(...[x,y,0,
+                this.textData.push(...[xLet,yLet,0,
                                     ...curLetter,1,
-                                    size/4,size,0
+                                    1/ParseData.biggestLine, 1/ParseData.newLines,0
                 ])
-                x += 0.05;
+                xLet += 1/ParseData.biggestLine*2;
+            }
+            this.textPositions[0] = {
+                name: "Helloworld",
+                position: [x,y],
+                text: letter,
+                size: [SizeTotal[0], SizeTotal[1]],
+                ratio: [ParseData.biggestLine, ParseData.newLines],
+                uniformdata: this.textData
             }
         }
     }
@@ -404,12 +454,13 @@ export class Engine{
         // create custom frame buffer and attach this.tex to it, and then bind default framebuffer instead.
         this.customframebuffer = this.#gl.createFramebuffer();
         this.#gl.bindFramebuffer(this.#gl.FRAMEBUFFER, this.customframebuffer);
+        // IMPORTANT: frambuffertexture applies texture on thix.tex
         this.#gl.framebufferTexture2D(this.#gl.FRAMEBUFFER, this.#gl.COLOR_ATTACHMENT0, this.#gl.TEXTURE_2D, this.tex, 0);
         //this.#gl.clearColor(0, 0, 1, 1); 
         //this.#gl.clear(this.#gl.COLOR_BUFFER_BIT | this.#gl.DEPTH_BUFFER_BIT);
         this.#gl.bindFramebuffer(this.#gl.FRAMEBUFFER, null);
-        this.#gl.enable(this.#gl.BLEND);
-        this.#gl.blendFunc(this.#gl.SRC_ALPHA, this.#gl.ONE_MINUS_SRC_ALPHA);
+        //this.#gl.enable(this.#gl.BLEND);
+        //this.#gl.blendFunc(this.#gl.SRC_ALPHA, this.#gl.ONE_MINUS_SRC_ALPHA);
     }
     Draw()
     {
@@ -417,18 +468,13 @@ export class Engine{
         // count in for camera and aspect ratio 
         this.#gl.useProgram(this.textShaderProgram);
         this.#gl.bindFramebuffer(this.#gl.FRAMEBUFFER, this.customframebuffer);
-        this.#gl.viewport(0,0,1024,256);
+        this.#gl.viewport(0,0,this.textPositions[0].size[0],this.textPositions[0].size[1]);
         this.#gl.bindTexture(this.#gl.TEXTURE_2D, this.atlasTextureBuffer);
-        // Fill with le transparency =)
+        // Fill with the transparency 
         this.#gl.clearColor(0.0, 0.0, 0.0, 0.0);
         this.#gl.clear(this.#gl.COLOR_BUFFER_BIT);
         this.#gl.uniformMatrix3fv(this.texposloc, false, this.textData);
         this.#gl.drawElementsInstanced(this.#gl.TRIANGLES, 6, this.#gl.UNSIGNED_SHORT, 0, this.textData.length/9);
-
-        //this.#gl.clearColor(0.0, 0.0, 0.0, 1.0);
-        //this.#gl.clear(this.#gl.COLOR_BUFFER_BIT);
-        //this.#gl.drawArrays(this.#gl.TRIANGLES, 0, 6);
-        //this.#gl.drawArraysInstanced(this.#gl.TRIANGLES, 0, 6, this.rectcount);
 
         // Use main shader program and write into main framebuffer
         this.#gl.useProgram(this.shaderProgram);
@@ -446,23 +492,15 @@ export class Engine{
         // render framebuffered texture
         this.#gl.bindTexture(this.#gl.TEXTURE_2D, this.tex);
         this.#gl.uniform1f(this.normalizedSpriteSize, 1);
-        this.#gl.uniformMatrix3fv(this.posloc, false, [0,-1,0,0,0,1,12,3,0]);
+        this.#gl.uniformMatrix3fv(this.posloc, false, [this.textPositions[0].position[0], this.textPositions[0].position[1], 0,
+                                                        0,0,1,
+                                                        this.textPositions[0].ratio[0],this.textPositions[0].ratio[1],0]);
         this.#gl.drawElementsInstanced(this.#gl.TRIANGLES, 6, this.#gl.UNSIGNED_SHORT, 0, 1);
 
         this.#gl.bindTexture(this.#gl.TEXTURE_2D, null);
         // This manual way of handling textures and shaderprograms on top of that isn't cool
     }
 
-    // use AlphabetTex.png texture to type text
-    // TODO: 
-    WrieText(text,x=0,y=0,scale=64, maxX=this.#gl.width)
-    {
-        // output text rectangle size
-        const RectXSize = maxX;
-        const RectYSize = Math.ceil(text.length*scale/maxX);
-
-        // New texture 
-    }
     move_camera(vector2)
     {
         this.cameraPosition[0] += vector2.x;

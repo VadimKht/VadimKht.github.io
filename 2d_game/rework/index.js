@@ -44,27 +44,29 @@ document.MoveCamera = (vector2) => {
 
 let pointerid = 0;
 
-engine.AddText("Text my", "Alorem ipsum something something\ni forgot the text and\nhonestly dont care about\nit as much so i didnt\neven try to find the text onlin\ne", 1/6);
+engine.SetText(0,0, "ab\ncd", 1);
 const beginning = "A".charCodeAt();
 document.onmousedown = (e)=>{
 
-    engine.AddText("Text my", String.fromCharCode(pointerid+beginning), 1/6);
+    engine.SetText(0,0, String.fromCharCode(pointerid+beginning), 1);
     pointerid++;
 
-    engine.Draw();
+    shouldDraw = true;
 
 };
 
 let touchControls = false;
 let touchOrigin = [0,0];
 let touchDragged = [0,0];
+let touchStartTime = 0;
 document.ontouchstart = (e) => {
     const PointCentre = FindPointCentre(e.touches[0].pageX, e.touches[0].pageY, false);
     touchControls = true;
     touchOrigin = PointCentre;
+    touchStartTime = new Date().getTime();
 }
 document.ontouchmove = (e) =>{
-    if(touchControls)
+    if(touchControls && new Date().getTime()-touchStartTime > 100)
     {
         const pointpos = FindPointCentre(e.touches[0].pageX, e.touches[0].pageY, false);
         touchDragged =  [pointpos[0] - touchOrigin[0], pointpos[1] - touchOrigin[1]];
@@ -74,11 +76,13 @@ document.ontouchmove = (e) =>{
             touchDragged[0] = touchDragged[0]/magnitude;
             touchDragged[1] = touchDragged[1]/magnitude;
         }
+        engine.ChangeData(0, 2, Math.atan2(pointpos[1] - touchOrigin[1], pointpos[0] - touchOrigin[0])*57);
     }
 }
 document.ontouchend = (e) =>{
     touchControls = false;
     touchDragged = [0,0];
+    if(new Date().getTime()-touchStartTime < 100) KeysPressed.e = 1;
 }
 
 let KeysPressed = {"w": 0, "a": 0, "s": 0, "d": 0, "e": 0, "esc": 0};
@@ -138,16 +142,6 @@ function Update()
         }
     }
 
-    // move all e's down each frame. bad code. should instead reform code to return position of object instead
-    // instead of literally just looping through whole array.
-    for(let i = 0; i < engine.Scene.GameObjects.length; i++)
-    {
-        if(engine.Scene.GameObjects[i][0] == "e")
-        {
-            engine.ChangeData(i, 1, engine.Scene.GameObjects[i][1][1] -= 0.01);
-            shouldDraw = true;
-        }
-    }
 
     // temporary code for finding colissions, for now finds collisions between player and all objects in scene and deletes by default
     // and in other cases does interaction or remove on interaction key.
@@ -159,7 +153,7 @@ function Update()
                 if(engine.Scene.GameObjects[i] == engine.Scene.GameObjects[myNPC])
                 {
                     if(KeysPressed.e) {
-                        engine.AddText("text", "Hello im npc. Welcome to this\nterrible world. Please\nKill es. I hate them.\nPress e to kill es. dont take too\nlong they kill on long phys interaction..")
+                        engine.SetText(5,1.5, "Hello i'm NPC.\nNew line test\nThe text is weird.\nShould probably\nrewrite whole thing")
                         shouldDraw = true;
                     }
                     continue;
@@ -209,7 +203,6 @@ function Update()
 }
 Update();
 
-// if user uses touch, probably dont do that
 document.onmousemove = () => {
     engine.ChangeData(0, 2, wtf({x: engine.uniformData[0], y: engine.uniformData[1]}));
     shouldDraw = true;
