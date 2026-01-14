@@ -13,9 +13,12 @@ export class Engine{
     textureBuffer;
     atlasTextureBuffer
     tex;
+    SPECIALJAN;
 
     textureTexture;
     atlasTexture;
+    SPECIALJANTexture;
+
     textPositions = [{
         name: "Helloworld",
         position: [0,0],
@@ -48,6 +51,7 @@ export class Engine{
 
     // objects data (read shaders/vertex "positions" uniform comment)
     uniformData = [];
+    JANuniformData = [];
 
     Scene = {
         GameObjects: []
@@ -173,6 +177,24 @@ export class Engine{
         this.indexBuffer = this.#gl.createBuffer();        
         // reset
         this.#gl.bindBuffer(this.#gl.ARRAY_BUFFER, null);
+    }
+
+    // I haven't come up with good texture swapping code yet so for now i have THIRD function and array for objects  temporarily.
+    // the problem stems within the fact i need to stack all the same-textured objects (for batched rendering) and it's hard to without resorting each addobject or recreating uniform data every time... i guess recreating uniform data is no problem for this small project and even 2777 objects would not cause much of a hassle....
+    AddTemporarilyJAN(position=[0,0], texindex=[0,0])
+    {
+    	this.JANuniformData.push(... position, 0, ...texindex, 1, 2,2,0);
+    }
+    ChangeJANData(id, dataid,  data){
+        this.JANuniformData[id*9+dataid] = data;
+    }
+    EatJan(id)
+    {
+        this.JANuniformData.fill(0, id*9, id*9+9);
+    }
+    ExistsJan(id)
+    {
+        return !(this.JANuniformData[id*9+7] == 0);
     }
 
     AddObject(name = "Object", position = [0,0], rotation = 0, scale = [1, 1], shape="circle", texindex = [0,0], texScale = 1,
@@ -461,13 +483,18 @@ export class Engine{
             this.MakeTexture(this.atlasTextureBuffer, this.atlasTexture)
             this.DrawTextFrameBuffer();
         };
+        this.atlasTexture.src = "AlphabetTex.png"
 
         this.tex = this.#gl.createTexture();
         this.MakeTexture(this.tex,null,512,512);
         this.textureBuffer = this.#gl.createTexture();
         this.MakeTexture(this.textureBuffer, [255,0,0,255, 0,255,0,255, 255,0,255,255, 0,255,255,255], 2,2);
-
-        this.atlasTexture.src = "AlphabetTex.png"
+	this.SPECIALJAN = this.#gl.createTexture();
+	this.SPECIALJANTexture = await new Image();
+	this.SPECIALJANTexture.onload = () =>{
+	    this.MakeTexture(this.SPECIALJAN, this.SPECIALJANTexture);
+	};
+	this.SPECIALJANTexture.src = "SPECIAL_DAY_14_JAN_TEXTURE.png";
 
 
         // Further detail in shaders/vertex at positions uniform.
@@ -491,9 +518,6 @@ export class Engine{
 
         // create custom frame buffer and attach this.tex to it, and then bind default framebuffer instead.
         this.customframebuffer = this.#gl.createFramebuffer();
-        this.#gl.bindFramebuffer(this.#gl.FRAMEBUFFER, this.customframebuffer);
-        // IMPORTANT: frambuffertexture applies texture on thix.tex
-        this.#gl.framebufferTexture2D(this.#gl.FRAMEBUFFER, this.#gl.COLOR_ATTACHMENT0, this.#gl.TEXTURE_2D, this.tex, 0);
         this.#gl.bindFramebuffer(this.#gl.FRAMEBUFFER, null);
     }
     Draw()
@@ -506,17 +530,23 @@ export class Engine{
 
         // render one texture
         this.#gl.bindTexture(this.#gl.TEXTURE_2D, this.textureBuffer);
-        this.#gl.uniform1f(this.normalizedSpriteSize, 1/2);
+        this.#gl.uniform1f(this.normalizedSpriteSize, 1/4);
         const rectcount = this.Scene.GameObjects.length;
         this.#gl.uniformMatrix3fv(this.posloc, false, this.uniformData);
         this.#gl.drawElementsInstanced(this.#gl.TRIANGLES, 6, this.#gl.UNSIGNED_SHORT, 0, rectcount);
-
+	
+	// render texture that contains text
         this.#gl.bindTexture(this.#gl.TEXTURE_2D, this.tex);
         this.#gl.uniform1f(this.normalizedSpriteSize, 1);
         this.#gl.uniformMatrix3fv(this.posloc, false, [this.textPositions[0].position[0], this.textPositions[0].position[1], 0,
                                                         0,0,1,
                                                         this.textPositions[0].ratio[0],this.textPositions[0].ratio[1],0]);
         this.#gl.drawElementsInstanced(this.#gl.TRIANGLES, 6, this.#gl.UNSIGNED_SHORT, 0, 1);
+
+	this.#gl.bindTexture(this.#gl.TEXTURE_2D, this.SPECIALJAN);
+	this.#gl.uniform1f(this.normalizedSpriteSize, 256/2048);
+	this.#gl.uniformMatrix3fv(this.posloc, false, this.JANuniformData);
+	this.#gl.drawElementsInstanced(this.#gl.TRIANGLES, 6, this.#gl.UNSIGNED_SHORT, 0,this.JANuniformData.length/9);
 
         this.#gl.bindTexture(this.#gl.TEXTURE_2D, null);
         // This manual way of handling textures and shaderprograms on top of that isn't cool
@@ -529,7 +559,11 @@ export class Engine{
         // count in for camera and aspect ratio 
         this.#gl.useProgram(this.textShaderProgram);
         this.#gl.bindFramebuffer(this.#gl.FRAMEBUFFER, this.customframebuffer);
-        this.#gl.viewport(0,0,this.textPositions[0].size[0],this.textPositions[0].size[1]);
+        
+	// IMPORTANT: frambuffertexture applies texture on thix.tex
+        this.#gl.framebufferTexture2D(this.#gl.FRAMEBUFFER, this.#gl.COLOR_ATTACHMENT0, this.#gl.TEXTURE_2D, this.tex, 0);
+        
+	this.#gl.viewport(0,0,this.textPositions[0].size[0],this.textPositions[0].size[1]);
         this.#gl.bindTexture(this.#gl.TEXTURE_2D, this.atlasTextureBuffer);
         // Fill with the transparency 
         this.#gl.clearColor(0.0, 0.0, 0.0, 0.0);

@@ -16,13 +16,22 @@
 </head>
 <body>
     <canvas id="canvas" width="800" height="800"></canvas>
+<!--    <div id="serveroutput">
+   	 <span>example</span>
+    </div>
+    <input type="text", name="input", value="Input text"></input>-
+    <button>Send</button>-->
     <style>
         body{
             margin: 0;
         }
     </style>
     <script id="shader-fs" type="x-shader/x-fragment" src="./shaders/fragment"> </script>
-    <script id="shader-vs" type="x-shader/x-vertex" src="./shaders/vertex"> </script>
+    <script id="shader-vs" type="x-shader/x-vertex" src="./shaders/vertex"> </script>    
+    <audio  muted>
+    <source src="munch.mp3" type="audio/mpeg">
+    Your browser does not support the audio element.
+    </audio>
     <script type="module" src="index.js"></script>
 </body>
 </html>
