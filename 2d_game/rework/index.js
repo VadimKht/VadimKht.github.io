@@ -19,58 +19,14 @@ engine.AddObjectRaw("player", [0.0, 0.0, 0.0,
     0.0, 0.0, 1.0,
     1,    1,   0,]);
 
-
-engine.AddTemporarilyJAN([-1,7], [0,3]);
-engine.AddTemporarilyJAN([2,7], [0,0]);
-engine.AddTemporarilyJAN([3,9], [0,1])
-engine.AddTemporarilyJAN([0, 12], [7,7])
-engine.AddTemporarilyJAN([0,10], [0,5])
-		let sound = new Audio("munch.mp3");
-let music = new Audio("audio.mp3");
-let death = new Audio("scream.mp3");
-let deadsilence = false;
-
-let aoe = 0;
-let AnimationLoopMapDance2 = [[0,3], [1,3],[2,3],[3,3],[4,3],[5,3],[6,3],[7,3],[0,4],[1,4],[2,4],[3,4],[4,4],[5,4],[6,4]]
-let aoe2 = 0;
-let AnimationLoopMapDance3 = [[0,0], [1,0], [2,0], [3,0], [4,0],[5,0],[6,0],[7,0]];
-let aoe3 = 0;
-let AnimationLoopMapDance = [[0,1],[1,1],[2,1],[3,1],[4,1],[5,1],[6,1],[7,1],[0,2],[1,2],[2,2],[3,2]]
-
-let aoe4 = [0,0];
-let interval;
-// [0] animations for beginning
-// [1] animations for user interacting
-// [2] loop animation after user ate
-let CakeAnimations = [ [ [0,5],[1,5],[2,5],[3,5] ], [ [0,6], [1,6], [2,6],[3,6],[4,6] ], [ [0,7],[1,7],[2,7],[3,7],[4,7] ]];
-
-const animation = setInterval(()=>{
-	if(aoe >= AnimationLoopMapDance2.length-1) aoe = 0;
-	if(aoe2 >= AnimationLoopMapDance3.length-1) aoe2 = 0;
-	if(aoe3 >= AnimationLoopMapDance.length-1) aoe3 = 0;
-	
-	engine.ChangeJANData(0, 3, AnimationLoopMapDance2[aoe][0]);
-	engine.ChangeJANData(0, 4, AnimationLoopMapDance2[aoe][1]);
-	
-	engine.ChangeJANData(1, 3, AnimationLoopMapDance3[aoe2][0]);
-	engine.ChangeJANData(1, 4, AnimationLoopMapDance3[aoe2][1]);
-	
-	engine.ChangeJANData(2, 3, AnimationLoopMapDance[aoe3][0]);
-	engine.ChangeJANData(2, 4, AnimationLoopMapDance[aoe3][1]);
-	aoe +=1;
-	aoe2 += 1;
-	aoe3 += 1;
-	shouldDraw = true;
-},1000/6);
-
 _handlemouse();
-/*const myNPC = engine.AddObject("NPC", [5,0],45, [1,1], "circle", [4,3]);
+const myNPC = engine.AddObject("NPC", [5,0],45, [1,1], "circle", [4,3]);
 const enemyList = [[0,6],[1,6]];
 for(const enemy of enemyList)
 {
     engine.AddObject("e",[enemy[0], enemy[1]], 0,[1,1],"circle", [6,2]);
 }
-*/
+
 // await because we get shader files (file IO) from "server"
 await engine.Init();
 engine.BindBuffers();
@@ -84,18 +40,18 @@ textureData.addEventListener("load", ()=>{
 
 document.MoveCamera = (vector2) => {
     engine.move_camera(vector2);
-    engine.Draw();
+    shouldDraw = true;
 }
 
 let pointerid = 0;
 
-engine.SetText(-2,12, "HAPPY\nBIRTHDAY\nJETT", 0.5);
+engine.SetText(-2,0, "Text", 0.5);
 const beginning = "A".charCodeAt();
 document.onmousedown = (e)=>{
 
     //engine.SetText(0,0, String.fromCharCode(pointerid+beginning), 1);
     //pointerid++;
-    //engine.AddObject("Bullet", [engine.Scene.GameObjects[0][1][0], engine.Scene.GameObjects[0][1][1]], wtf({x: engine.Scene.GameObjects[0][1][0], y: engine.Scene.GameObjects[0][1][1]}));
+    engine.AddObject("Bullet", [engine.Scene.GameObjects[0][1][0], engine.Scene.GameObjects[0][1][1]], wtf({x: engine.Scene.GameObjects[0][1][0], y: engine.Scene.GameObjects[0][1][1]}));
     shouldDraw = true;
     
 };
@@ -153,8 +109,6 @@ const dashDelay = 4;
 // if startedDashAt + dashTime + dashDelay < time now ? do nothing : dash once more and set new startedDashAt
 
 document.onkeydown = (e)=>{
-    if(engine.Scene.GameObjects[0][1][1] > 2)
-if(music.paused && !deadsilence) music.play();
     switch(e.code)
     {
         case "KeyW":
@@ -328,28 +282,6 @@ function Update()
                 }
             }
         }
-// TEMP temp remove later when party is over
-    if(KeysTapped.e&&engine.ExistsJan(4))
-    {
-        const distX = engine.Scene.GameObjects[0][1][0] - 0;
-        const distY = engine.Scene.GameObjects[0][1][1] - 10;
-	const distance = Math.sqrt((distX * distX) + (distY*distY));
-	if(distance <= 1.5) {
-
-		const limit = CakeAnimations[aoe4[0]].length;
-		interval = setInterval(()=>{
-			const currentFrame = CakeAnimations[aoe4[0]][aoe4[1]];
-			engine.ChangeJANData(4,3,currentFrame[0]);
-			engine.ChangeJANData(4,4,currentFrame[1]);
-			aoe4[1] += 1;	
-			if(aoe4[0] == 2 && aoe4[1] >= limit) {aoe4[1] = 0;}
-			if(aoe4[0] == 1 && aoe4[1] == limit) {aoe4[0] = 2; aoe4[1] = 0; sound.play();}
-			if(aoe4[1] >= limit && aoe4[0] != 2) {aoe4[0] += 1; aoe4[1] = 0;clearInterval(interval)};
-		},1000/6)
-		if(aoe4[0] == 2 && engine.ExistsJan(4)){clearInterval(interval); sound.play(); death.play(); deadsilence = true; music.pause(); engine.EatJan(4); };
-	}
-	
-    }
     if(KeysTapped.space){
         if(new Date().getTime()/1000 < startedDashAt + dashTime + dashDelay){}
         else{
